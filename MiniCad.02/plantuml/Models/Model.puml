@@ -1,0 +1,7 @@
+@startuml
+class Model <<partial>> {
+    + Model()
+    + Model(container:IContainer)
+}
+Component <|-- Model
+@enduml

@@ -1,0 +1,10 @@
+@startuml
+class Geometry <<static>> {
+    + {static} Distance(@this:Point, other:Point) : int
+    + {static} Difference(@this:Point, other:Point) : Size
+    + {static} Absolute(@this:Size) : int
+    + {static} BoundingBox(@this:(Point center, int radius)) : Rectangle
+    + {static} BoundingBox(@this:IEnumerable<Point>) : Rectangle?
+    {static} Square(value:int) : int
+}
+@enduml

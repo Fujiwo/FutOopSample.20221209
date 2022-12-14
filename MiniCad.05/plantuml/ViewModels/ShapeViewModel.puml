@@ -1,0 +1,9 @@
+@startuml
+class ShapeViewModel <<static>> {
+    <<const>> penWidth : int = 10
+    + {static} Draw(@this:Shape, graphics:Graphics) : void
+}
+ShapeViewModel o-> "color" Color
+ShapeViewModel o-> "pen" Pen
+ShapeViewModel o-> "brush" Brush
+@enduml

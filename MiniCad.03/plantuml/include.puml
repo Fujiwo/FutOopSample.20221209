@@ -1,0 +1,50 @@
+@startuml
+class Program <<static>> {
+    {static} Main() : void
+}
+class EnumerableHelper <<static>> {
+    + {static} ForEach(@this:IEnumerable<TElement>, action:Action<TElement>) : void
+}
+class Figure {
+    <<const>> radius : int = 20
+}
+class "IEnumerable`1"<T> {
+}
+Figure --> "Position" Point
+Figure --> "Shapes<Shape>" "IEnumerable`1"
+class Model <<partial>> {
+    + Model()
+    + Model(container:IContainer)
+    + GetEnumerator() : IEnumerator<Figure>
+    GetEnumerator() : IEnumerator
+}
+class "IEnumerable`1"<T> {
+}
+Component <|-- Model
+"IEnumerable`1" "<Figure>" <|-- Model
+class Model <<partial>> {
+}
+class Shape {
+}
+class Circle {
+    + <<required>> Radius : int <<get>> <<init>>
+}
+Shape <|-- Circle
+Circle --> "Center" Point
+Circle --> "BoundingBox" Rectangle
+class MainForm <<partial>> {
+    + MainForm()
+    exitToolStripMenuItem_Click(sender:object, e:EventArgs) : void
+}
+Form <|-- MainForm
+class MainForm <<partial>> {
+}
+class View <<partial>> {
+    + View()
+    OnPaint(sender:object, e:PaintEventArgs) : void
+    Draw(graphics:Graphics, shape:Shape) : void
+}
+UserControl <|-- View
+class View <<partial>> {
+}
+@enduml

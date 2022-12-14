@@ -1,0 +1,4 @@
+@startuml
+class Model <<partial>> {
+}
+@enduml

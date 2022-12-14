@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Block Breaker Game</title>
+    <style>* { padding: 0; margin: 0; } canvas { background: #eee; display: block; margin: 0 auto; }</style>
+</head>
+<body>
+
+<canvas id="myCanvas" width="480" height="320"></canvas>
+
+<script>
+    class Canvas {
+        constructor(canvasId) {
+            this.canvasElement = document.getElementById(canvasId);
+            this.context       = this.canvasElement.getContext("2d");
+        }
+
+        get width() {
+            return this.canvasElement.width;
+        }
+
+        get height() {
+            return this.canvasElement.height;
+        }
+
+        clear() {
+            this.context.clearRect(0, 0, this.width, this.height);
+        }
+        
+        drawCircle(x, y, radius, fillStyle) {
+            this.context.beginPath();
+            this.context.arc(x, y, radius, 0, Math.PI * 2);
+            this.context.fillStyle = fillStyle;
+            this.context.fill();
+            this.context.closePath();
+        }
+
+        drawRectangle(x, y, width, height, fillStyle) {
+            this.context.beginPath();
+            this.context.rect(x, y, width, height);
+            this.context.fillStyle = fillStyle;
+            this.context.fill();
+            this.context.closePath();
+        }
+
+        drawText(text, x, y, font, fillStyle) {
+            this.context.font = font;
+            this.context.fillStyle = fillStyle;
+            this.context.fillText(text, x, y);
+        }
+    }
+
+    class Ball {
+        static radius = 10;
+
+        constructor(x, y, dx, dy) {
+            this.x0 = this.x = x;
+            this.y0 = this.y = y;
+            this.dx0 = this.dx = dx;
+            this.dy0 = this.dy = dy;
+        }
+
+        reset() {
+            this.x = this.x0;
+            this.y = this.y0;
+            this.dx = this.dx0;
+            this.dy = this.dy0;
+        }
+
+        xTurn() {
+            this.dx = -this.dx;            
+        }
+
+        yTurn() {
+            this.dy = -this.dy;            
+        }
+
+        move() {
+            this.x += this.dx;
+            this.y += this.dy;
+        }
+
+        moveTo(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        draw(canvas) {
+            canvas.drawCircle(this.x, this.y, Ball.radius, "#0095DD");
+        }
+    }
+
+    class Paddle {
+        static height = 10;
+        static width = 75;
+
+        constructor(maxWidth) {
+            // this.height = 10;
+            // this.width = 75;
+            this.x0 = this.x = (maxWidth - Paddle.width) / 2;
+        }
+
+        draw(canvas) {
+            canvas.drawRectangle(this.x, canvas.height - Paddle.height, Paddle.width, Paddle.height, "#0095DD");
+        }
+
+        moveTo(x) {
+            this.x = x;
+        }
+
+        moveRight() {
+            this.x += 7;
+        }
+        
+        moveLeft() {
+            this.x -= 7;
+        }
+
+        reset() {
+            this.x = this.x0;
+        }
+    }
+
+    class Brick {
+        static width = 75;
+        static height = 20;
+
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.status = 1;
+        }
+
+        moveTo(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        draw(canvas) {
+            canvas.drawRectangle(this.x, this.y, Brick.width, Brick.height, "#0095DD");
+        }
+    }
+
+    class Bricks {
+        static rowCount = 5;
+        static columnCount = 3;
+
+        static offsetTop = 30;
+        static offsetLeft = 30;
+        static padding = 10;
+    
+        constructor() {
+            this.bricks = [];
+
+            for (var column = 0; column < Bricks.columnCount; column++) {
+                this.bricks[column] = [];
+                for (var row = 0; row < Bricks.rowCount; row++)
+                    this.bricks[column][row] = new Brick();
+            }
+        }
+
+        draw(canvas) {
+            for (var column = 0; column < Bricks.columnCount; column++) {
+                for (var row = 0; row < Bricks.rowCount; row++) {
+                    if (this.bricks[column][row].status == 1) {
+                        var brickX = (row * (Brick.width + Bricks.padding)) + Bricks.offsetLeft;
+                        var brickY = (column * (Brick.height + Bricks.padding)) + Bricks.offsetLeft;
+                        this.bricks[column][row].moveTo(brickX, brickY);
+                        this.bricks[column][row].draw(canvas);
+                    }
+                }
+            }
+        }
+
+        collisionDetection(ball, score) {
+            for (var column = 0; column < Bricks.columnCount; column++) {
+                for (var row = 0; row < Bricks.rowCount; row++) {
+                    var brick = this.bricks[column][row];
+                    if (brick.status == 1) {
+                        if (ball.x > brick.x && ball.x < brick.x + Brick.width && ball.y > brick.y && ball.y < brick.y + Brick.height) {
+                            ball.yTurn();
+                            brick.status = 0;
+                            score++;
+                            if (score == Bricks.rowCount * Bricks.columnCount) {
+                                alert("YOU WIN, CONGRATS!");
+                                document.location.reload();
+                            }
+                        }
+                    }
+                }
+            }
+            return score;
+        }
+    }
+
+    class BlockBreakerGame {
+        constructor() {
+            this.canvas = new Canvas("myCanvas");
+            this.ball   = new Ball(this.canvas.width / 2, this.canvas.height - 30, 2, -2);
+            this.paddle = new Paddle(this.canvas.width);
+            this.bricks = new Bricks();
+            this.score = 0;
+            this.lives = 3;
+
+            this.rightPressed = false;
+            this.leftPressed = false;
+
+            document.addEventListener("keydown", e => this.keyDownHandler(e), false);
+            document.addEventListener("keyup", e => this.keyUpHandler(e), false);
+            document.addEventListener("mousemove", e => this.mouseMoveHandler(e), false);
+
+            this.draw(this.canvas);
+        }
+
+        drawScore(canvas, score) {
+            canvas.drawText("Score: " + score, 8, 20, "16px Arial", "#0095DD");
+        }
+
+        drawLives(canvas, lives) {
+            canvas.drawText("Lives: " + lives, canvas.width - 65, 20, "16px Arial", "#0095DD");
+        }
+
+        keyDownHandler(e) {
+            if(e.code  == "ArrowRight")
+                this.rightPressed = true;
+            else if(e.code == 'ArrowLeft')
+                this.leftPressed = true;
+        }
+
+        keyUpHandler(e) {
+            if(e.code == 'ArrowRight')
+                this.rightPressed = false;
+            else if(e.code == 'ArrowLeft')
+                this.leftPressed = false;
+        }
+
+        mouseMoveHandler(e) {
+            var relativeX = e.clientX - this.offsetLeft;
+            if (relativeX > 0 && relativeX < this.canvas.width)
+                this.paddle.moveTo(relativeX - Paddle.width / 2);
+        }
+
+        draw(canvas) {
+            this.canvas.clear();
+
+            this.bricks.draw(this.canvas);
+            this.ball.draw(this.canvas);
+            this.paddle.draw(this.canvas);
+
+            this.drawScore(canvas, this.score);
+            this.drawLives(canvas, this.lives);
+            this.score = this.bricks.collisionDetection(this.ball, this.score);
+
+            this.moveBall();
+            this.movePaddle();
+
+            this.ball.move();
+            requestAnimationFrame(() => this.draw(this.canvas));
+        }
+
+        moveBall() {
+            if (this.ball.x + this.ball.dx > this.canvas.width - Ball.radius || this.ball.x + this.ball.dx < Ball.radius) {
+                this.ball.xTurn();
+            } if (this.ball.y + this.ball.dy < Ball.radius) {
+                this.ball.yTurn();
+            } else if (this.ball.y + this.ball.dy > this.canvas.height - Ball.radius) {
+                if (this.ball.x > this.paddle.x && this.ball.x < this.paddle.x + Paddle.width) {
+                    this.ball.yTurn();
+                } else {
+                    this.lives--;
+                    if (!this.lives) {
+                        alert("GAME OVER");
+                        document.location.reload();
+                    } else {
+                        this.ball.reset();
+                        this.paddle.reset();
+                    }
+                }
+            }
+        }
+
+        movePaddle() {
+            if (this.rightPressed && this.paddle.x < this.canvas.width - Paddle.width)
+                this.paddle.moveRight();
+            else if (this.leftPressed && this.paddle.x > 0)
+                this.paddle.moveLeft();
+        }
+    }
+
+    var game = new BlockBreakerGame();
+</script>
+
+</body>
+</html>

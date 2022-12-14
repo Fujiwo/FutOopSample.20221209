@@ -1,0 +1,7 @@
+@startuml
+class MainForm <<partial>> {
+    + MainForm()
+    exitToolStripMenuItem_Click(sender:object, e:EventArgs) : void
+}
+Form <|-- MainForm
+@enduml

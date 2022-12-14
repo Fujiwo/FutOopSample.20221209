@@ -1,0 +1,17 @@
+@startuml
+class Model <<partial>> {
+    + Update : Action? <<get>> <<set>>
+    + Model()
+    + Model(container:IContainer)
+    + Add(figure:Figure) : void
+    + GetEnumerator() : IEnumerator<Figure>
+    GetEnumerator() : IEnumerator
+}
+class "IEnumerable`1"<T> {
+}
+class "LinkedList`1"<T> {
+}
+Component <|-- Model
+"IEnumerable`1" "<Figure>" <|-- Model
+Model o-> "figures<Figure>" "LinkedList`1"
+@enduml

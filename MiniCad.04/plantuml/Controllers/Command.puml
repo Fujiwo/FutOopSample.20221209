@@ -1,0 +1,17 @@
+@startuml
+interface ICommand {
+    OnInput(point:Point) : bool
+}
+abstract class Command {
+    + <<virtual>> OnInput(point:Point) : bool
+}
+class NullCommand {
+}
+class AddDotCommand {
+    + <<override>> OnInput(point:Point) : bool
+}
+ICommand <|-- Command
+Command o-> "Model" Model
+Command <|-- NullCommand
+Command <|-- AddDotCommand
+@enduml

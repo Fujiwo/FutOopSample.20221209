@@ -1,0 +1,25 @@
+@startuml
+class Program <<static>> {
+    {static} Main() : void
+}
+class Model <<partial>> {
+    + Model()
+    + Model(container:IContainer)
+}
+Component <|-- Model
+class Model <<partial>> {
+}
+class MainForm <<partial>> {
+    + MainForm()
+    exitToolStripMenuItem_Click(sender:object, e:EventArgs) : void
+}
+Form <|-- MainForm
+class MainForm <<partial>> {
+}
+class View <<partial>> {
+    + View()
+}
+UserControl <|-- View
+class View <<partial>> {
+}
+@enduml

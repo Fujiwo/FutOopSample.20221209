@@ -1,0 +1,5 @@
+@startuml
+class Model <<partial>> {
+    InitializeComponent() : void
+}
+@enduml

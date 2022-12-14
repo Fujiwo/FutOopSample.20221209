@@ -1,0 +1,12 @@
+@startuml
+class Model <<partial>> {
+    + Model()
+    + Model(container:IContainer)
+    + GetEnumerator() : IEnumerator<Figure>
+    GetEnumerator() : IEnumerator
+}
+class "IEnumerable`1"<T> {
+}
+Component <|-- Model
+"IEnumerable`1" "<Figure>" <|-- Model
+@enduml

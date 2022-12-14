@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop - lesson 10: finishing up</title>
+    <style>* { padding: 0; margin: 0; } canvas { background: #eee; display: block; margin: 0 auto; }</style>
+</head>
+<body>
+
+<canvas id="myCanvas" width="480" height="320"></canvas>
+
+<script>
+    class Canvas {
+        constructor(canvasId) {
+            this.canvasElement = document.getElementById(canvasId);
+            this.context       = this.canvasElement.getContext("2d");
+        }
+
+        get width() {
+            return this.canvasElement.width;
+        }
+
+        get height() {
+            return this.canvasElement.height;
+        }
+
+        clear() {
+            this.context.clearRect(0, 0, this.width, this.height);
+        }
+
+        
+        drawCircle(x, y, radius, fillStyle) {
+            this.context.beginPath();
+            this.context.arc(x, y, radius, 0, Math.PI * 2);
+            this.context.fillStyle = fillStyle;
+            this.context.fill();
+            this.context.closePath();
+        }
+
+        drawRectangle(x, y, width, height, fillStyle) {
+            this.context.beginPath();
+            this.context.rect(x, y, width, height);
+            this.context.fillStyle = fillStyle;
+            this.context.fill();
+            this.context.closePath();
+        }
+
+        drawText(text, x, y, font, fillStyle) {
+            this.context.font = font;
+            this.context.fillStyle = fillStyle;
+            this.context.fillText(text, x, y);
+        }
+
+        drawScore(score) {
+            this.drawText("Score: " + score, 8, 20, "16px Arial", "#0095DD");
+        }
+
+        drawLives(lives) {
+            this.drawText("Lives: " + lives, this.width - 65, 20, "16px Arial", "#0095DD");
+        }
+    }
+
+    class Ball {
+        static radius = 10;
+
+        constructor(x, y, dx, dy) {
+            this.x0 = this.x = x;
+            this.y0 = this.y = y;
+            this.dx0 = this.dx = dx;
+            this.dy0 = this.dy = dy;
+        }
+
+        reset() {
+            this.x = this.x0;
+            this.y = this.y0;
+            this.dx = this.dx0;
+            this.dy = this.dy0;
+        }
+
+        xTurn() {
+            this.dx = -this.dx;            
+        }
+
+        yTurn() {
+            this.dy = -this.dy;            
+        }
+
+        move() {
+            this.x += this.dx;
+            this.y += this.dy;
+        }
+
+        moveTo(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        draw(canvas) {
+            canvas.drawCircle(this.x, this.y, Ball.radius, "#0095DD");
+        }
+    }
+
+    class Paddle {
+        static height = 10;
+        static width = 75;
+
+        constructor(maxWidth) {
+            // this.height = 10;
+            // this.width = 75;
+            this.x0 = this.x = (maxWidth - Paddle.width) / 2;
+        }
+
+        draw(canvas) {
+            canvas.drawRectangle(this.x, canvas.height - Paddle.height, Paddle.width, Paddle.height, "#0095DD");
+        }
+
+        moveRight() {
+            this.x += 7;
+        }
+        
+        moveLeft() {
+            this.x -= 7;
+        }
+
+        reset() {
+            this.x = this.x0;
+        }
+    }
+
+    class Brick {
+        static width = 75;
+        static height = 20;
+
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.status = 1;
+        }
+
+        moveTo(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        draw(canvas) {
+            canvas.drawRectangle(this.x, this.y, Brick.width, Brick.height, "#0095DD");
+        }
+    }
+
+    class Bricks {
+        static rowCount = 5;
+        static columnCount = 3;
+
+        static offsetTop = 30;
+        static offsetLeft = 30;
+        static padding = 10;
+    
+        constructor() {
+            this.bricks = [];
+
+            for (var column = 0; column < Bricks.columnCount; column++) {
+                this.bricks[column] = [];
+                for (var row = 0; row < Bricks.rowCount; row++)
+                    this.bricks[column][row] = new Brick();
+            }
+        }
+
+        draw(canvas) {
+            for (var column = 0; column < Bricks.columnCount; column++) {
+                for (var row = 0; row < Bricks.rowCount; row++) {
+                    if (this.bricks[column][row].status == 1) {
+                        var brickX = (row * (Brick.width + Bricks.padding)) + Bricks.offsetLeft;
+                        var brickY = (column * (Brick.height + Bricks.padding)) + Bricks.offsetLeft;
+                        this.bricks[column][row].moveTo(brickX, brickY);
+                        this.bricks[column][row].draw(canvas);
+                    }
+                }
+            }
+        }
+
+        collisionDetection(ball) {
+            for (var column = 0; column < Bricks.columnCount; column++) {
+                for (var row = 0; row < Bricks.rowCount; row++) {
+                    var brick = this.bricks[column][row];
+                    if (brick.status == 1) {
+                        if (ball.x > brick.x && ball.x < brick.x + Brick.width && ball.y > brick.y && ball.y < brick.y + Brick.height) {
+                            ball.yTurn();
+                            brick.status = 0;
+                            score++;
+                            if (score == Bricks.rowCount * Bricks.columnCount) {
+                                alert("YOU WIN, CONGRATS!");
+                                document.location.reload();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let canvas = new Canvas("myCanvas");
+    let ball   = new Ball(canvas.width / 2, canvas.height - 30, 2, -2);
+    let paddle = new Paddle(canvas.width);
+    let bricks = new Bricks();
+
+    var rightPressed = false;
+    var leftPressed = false;
+    var score = 0;
+    var lives = 3;
+
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+    document.addEventListener("mousemove", mouseMoveHandler, false);
+
+    function keyDownHandler(e) {
+        if(e.code  == "ArrowRight") {
+            rightPressed = true;
+        }
+        else if(e.code == 'ArrowLeft') {
+            leftPressed = true;
+        }
+    }
+    function keyUpHandler(e) {
+        if(e.code == 'ArrowRight') {
+            rightPressed = false;
+        }
+        else if(e.code == 'ArrowLeft') {
+            leftPressed = false;
+        }
+    }
+    function mouseMoveHandler(e) {
+        var relativeX = e.clientX - canvas.offsetLeft;
+        if(relativeX > 0 && relativeX < canvas.width) {
+            paddleX = relativeX - paddleWidth / 2;
+        }
+    }
+
+    function draw(canvas) {
+        canvas.clear();
+
+        bricks.draw(canvas);
+        ball.draw(canvas);
+        paddle.draw(canvas);
+
+        canvas.drawScore(score);
+        canvas.drawLives(lives);
+        bricks.collisionDetection(ball);
+
+        if (ball.x + ball.dx > canvas.width - Ball.radius || ball.x + ball.dx < Ball.radius) {
+            ball.xTurn();
+            // dx = -dx;
+        } if (ball.y + ball.dy < Ball.radius) {
+            ball.yTurn();
+            //dy = -dy;
+        } else if (ball.y + ball.dy > canvas.height - Ball.radius) {
+            if (ball.x > paddle.x && ball.x < paddle.x + Paddle.width) {
+                ball.yTurn();
+            } else {
+                lives--;
+                if (!lives) {
+                    alert("GAME OVER");
+                    document.location.reload();
+                } else {
+                    ball.reset();
+                    paddle.reset();
+                }
+            }
+        }
+
+        if (rightPressed && paddle.x < canvas.width - Paddle.width)
+            paddle.moveRight();
+        else if (leftPressed && paddle.x > 0)
+            paddle.moveLeft();
+
+        ball.move();
+        requestAnimationFrame(() => draw(canvas));
+    }
+
+    draw(canvas);
+</script>
+
+</body>
+</html>

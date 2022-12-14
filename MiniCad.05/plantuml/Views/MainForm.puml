@@ -1,0 +1,14 @@
+@startuml
+class MainForm <<partial>> {
+    + MainForm()
+    InitializeOthers() : void
+    OnFileExit(sender:object, e:EventArgs) : void
+    OnFigureDot(sender:object, e:EventArgs) : void
+    OnFigureLine(sender:object, e:EventArgs) : void
+    OnFigureCircle(sender:object, e:EventArgs) : void
+    OnViewMouseClick(sender:object, e:MouseEventArgs) : void
+    OnViewMouseMove(sender:object, e:MouseEventArgs) : void
+}
+Form <|-- MainForm
+MainForm o-> "commandManager" CommandManager
+@enduml

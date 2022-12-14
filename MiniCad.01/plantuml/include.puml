@@ -1,0 +1,11 @@
+@startuml
+class Program <<static>> {
+    {static} Main() : void
+}
+class MainForm <<partial>> {
+    + MainForm()
+}
+Form <|-- MainForm
+class MainForm <<partial>> {
+}
+@enduml

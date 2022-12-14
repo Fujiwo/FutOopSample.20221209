@@ -1,0 +1,27 @@
+@startuml
+class Figure {
+}
+class DotFigure {
+    + <<const>> Radius : int = 20
+}
+class LineFigure {
+}
+class CircleFigure {
+    + Radius : int <<get>> <<set>>
+}
+class "IEnumerable`1"<T> {
+}
+Figure --> "Shapes<Shape>" "IEnumerable`1"
+Figure <|-- DotFigure
+DotFigure --> "Position" Point
+DotFigure --> "Shapes<Shape>" "IEnumerable`1"
+Figure <|-- LineFigure
+LineFigure o-> "Position" Line
+LineFigure --> "Start" Point
+LineFigure --> "End" Point
+LineFigure --> "Shapes<Shape>" "IEnumerable`1"
+Figure <|-- CircleFigure
+CircleFigure o-> "Position" Circle
+CircleFigure --> "Center" Point
+CircleFigure --> "Shapes<Shape>" "IEnumerable`1"
+@enduml

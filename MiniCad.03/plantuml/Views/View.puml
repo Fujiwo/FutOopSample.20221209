@@ -1,0 +1,8 @@
+@startuml
+class View <<partial>> {
+    + View()
+    OnPaint(sender:object, e:PaintEventArgs) : void
+    Draw(graphics:Graphics, shape:Shape) : void
+}
+UserControl <|-- View
+@enduml

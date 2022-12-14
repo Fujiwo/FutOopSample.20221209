@@ -1,0 +1,8 @@
+@startuml
+class View <<partial>> {
+    + CommandManager : ICommand? <<get>> <<set>>
+    + View()
+    OnPaint(sender:object, e:PaintEventArgs) : void
+}
+UserControl <|-- View
+@enduml

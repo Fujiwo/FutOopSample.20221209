@@ -1,0 +1,10 @@
+@startuml
+class View <<partial>> {
+    + View()
+    OnPaint(sender:object, e:PaintEventArgs) : void
+    <<const>> penWidth : int = 10
+    Draw(graphics:Graphics, shape:Shape) : void
+}
+UserControl <|-- View
+View o-> "pen" Pen
+@enduml

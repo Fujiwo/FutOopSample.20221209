@@ -1,0 +1,10 @@
+@startuml
+class Shape {
+}
+class Circle {
+    + <<required>> Radius : int <<get>> <<init>>
+}
+Shape <|-- Circle
+Circle --> "Center" Point
+Circle --> "BoundingBox" Rectangle
+@enduml

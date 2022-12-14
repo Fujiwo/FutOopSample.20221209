@@ -1,0 +1,12 @@
+@startuml
+class CommandManager {
+    + CommandManager(model:Model)
+    + Set(command:Command) : void
+    + OnInput(point:Point) : bool
+    + OnCursorMove(point:Point) : bool
+    + Draw(graphics:Graphics) : void
+}
+ICommand <|-- CommandManager
+CommandManager o-> "currentCommand" Command
+CommandManager --> "Model" Model
+@enduml

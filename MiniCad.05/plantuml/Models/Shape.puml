@@ -1,0 +1,22 @@
+@startuml
+class Shape {
+}
+class Dot {
+    + <<const>> Radius : int = 20
+}
+class Line {
+}
+class Circle {
+    + Radius : int <<get>> <<set>>
+}
+Shape <|-- Dot
+Dot --> "Position" Point
+Dot --> "BoundingBox" Rectangle
+Shape <|-- Line
+Line --> "Start" Point
+Line --> "End" Point
+Line --> "BoundingBox" Rectangle
+Shape <|-- Circle
+Circle --> "Center" Point
+Circle --> "BoundingBox" Rectangle
+@enduml

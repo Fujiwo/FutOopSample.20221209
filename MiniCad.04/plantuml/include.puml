@@ -1,0 +1,91 @@
+@startuml
+class Program <<static>> {
+    {static} Main() : void
+}
+interface ICommand {
+    OnInput(point:Point) : bool
+}
+abstract class Command {
+    + <<virtual>> OnInput(point:Point) : bool
+}
+class NullCommand {
+}
+class AddDotCommand {
+    + <<override>> OnInput(point:Point) : bool
+}
+ICommand <|-- Command
+Command o-> "Model" Model
+Command <|-- NullCommand
+Command <|-- AddDotCommand
+class CommandManager {
+    + CommandManager(model:Model)
+    + Set(command:Command) : void
+    + OnInput(point:Point) : bool
+}
+ICommand <|-- CommandManager
+CommandManager o-> "currentCommand" Command
+CommandManager --> "Model" Model
+class EnumerableHelper <<static>> {
+    + {static} ForEach(@this:IEnumerable<TElement>, action:Action<TElement>) : void
+}
+class Figure {
+}
+class DotFigure {
+    <<const>> radius : int = 20
+}
+class "IEnumerable`1"<T> {
+}
+Figure --> "Shapes<Shape>" "IEnumerable`1"
+Figure <|-- DotFigure
+DotFigure --> "Position" Point
+DotFigure --> "Shapes<Shape>" "IEnumerable`1"
+class Model <<partial>> {
+    + Update : Action? <<get>> <<set>>
+    + Model()
+    + Model(container:IContainer)
+    + Add(figure:Figure) : void
+    + GetEnumerator() : IEnumerator<Figure>
+    GetEnumerator() : IEnumerator
+}
+class "IEnumerable`1"<T> {
+}
+class "LinkedList`1"<T> {
+}
+Component <|-- Model
+"IEnumerable`1" "<Figure>" <|-- Model
+Model o-> "figures<Figure>" "LinkedList`1"
+class Model <<partial>> {
+    InitializeComponent() : void
+}
+class Shape {
+}
+class Circle {
+    + <<required>> Radius : int <<get>> <<init>>
+}
+Shape <|-- Circle
+Circle --> "Center" Point
+Circle --> "BoundingBox" Rectangle
+class MainForm <<partial>> {
+    + MainForm()
+    InitializeOthers() : void
+    OnFileExit(sender:object, e:EventArgs) : void
+    OnFigureDot(sender:object, e:EventArgs) : void
+    OnFigureLine(sender:object, e:EventArgs) : void
+    OnFigureCircle(sender:object, e:EventArgs) : void
+    OnViewMouseClick(sender:object, e:MouseEventArgs) : void
+}
+Form <|-- MainForm
+MainForm o-> "commandManager" CommandManager
+class MainForm <<partial>> {
+}
+class View <<partial>> {
+    + View()
+    OnPaint(sender:object, e:PaintEventArgs) : void
+    <<const>> penWidth : int = 10
+    Draw(graphics:Graphics, shape:Shape) : void
+}
+UserControl <|-- View
+View o-> "pen" Pen
+class View <<partial>> {
+}
+@enduml
