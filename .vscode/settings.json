@@ -1,5 +1,5 @@
 {
     "csharp2plantuml.inputPath": "MiniCad.05",
     "plantuml.exportOutDir": "out",
-    "csharp2plantuml.excludePath": "MiniCad.03\\plantuml"
+    "csharp2plantuml.excludePath": ""
 }

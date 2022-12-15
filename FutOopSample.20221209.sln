@@ -36,6 +36,12 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "OOP.Samples.JavaScript", "O
 		SlnRelativePath = "OOP.Samples.JavaScript\"
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{A6EE44E2-3DF4-4147-A974-68C5CCEA0483}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.txt = LICENSE.txt
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
