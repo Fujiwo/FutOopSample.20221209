@@ -24,6 +24,10 @@
             return this.canvasElement.height;
         }
 
+        get offsetLeft() {
+            return this.canvasElement.offsetLeft;
+        }
+
         clear() {
             this.context.clearRect(0, 0, this.width, this.height);
         }
@@ -236,7 +240,7 @@
         }
 
         mouseMoveHandler(e) {
-            var relativeX = e.clientX - this.offsetLeft;
+            var relativeX = e.clientX - this.canvas.offsetLeft;
             if (relativeX > 0 && relativeX < this.canvas.width)
                 this.paddle.moveTo(relativeX - Paddle.width / 2);
         }

@@ -24,6 +24,10 @@
             return this.canvasElement.height;
         }
 
+        get offsetLeft() {
+            return this.canvasElement.offsetLeft;
+        }
+
         clear() {
             this.context.clearRect(0, 0, this.width, this.height);
         }
@@ -120,6 +124,10 @@
         
         moveLeft() {
             this.x -= 7;
+        }
+
+        moveTo(x) {
+            this.x = x;
         }
 
         reset() {
@@ -230,8 +238,8 @@
     }
     function mouseMoveHandler(e) {
         var relativeX = e.clientX - canvas.offsetLeft;
-        if(relativeX > 0 && relativeX < canvas.width) {
-            paddleX = relativeX - paddleWidth / 2;
+        if (relativeX > 0 && relativeX < canvas.width) {
+            paddle.moveTo(relativeX - Paddle.width / 2);
         }
     }
 

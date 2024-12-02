@@ -24,6 +24,10 @@
             return this.canvasElement.height;
         }
 
+        get offsetLeft() {
+            return this.canvasElement.offsetLeft;
+        }
+
         clear() {
             this.context.clearRect(0, 0, this.width, this.height);
         }

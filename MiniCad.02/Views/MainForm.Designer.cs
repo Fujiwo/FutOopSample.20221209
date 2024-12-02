@@ -17,24 +17,13 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.view = new MiniCad.Views.View();
             this.mainMenu = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.model = new MiniCad.Models.Model(this.components);
+            this.view = new MiniCad.Views.View();
             this.mainMenu.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // view
-            // 
-            this.view.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.view.BackColor = System.Drawing.Color.Beige;
-            this.view.Location = new System.Drawing.Point(0, 57);
-            this.view.Name = "view";
-            this.view.Size = new System.Drawing.Size(1417, 984);
-            this.view.TabIndex = 0;
             // 
             // mainMenu
             // 
@@ -61,6 +50,17 @@
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(274, 66);
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // view
+            // 
+            this.view.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.view.BackColor = System.Drawing.Color.Beige;
+            this.view.Location = new System.Drawing.Point(0, 57);
+            this.view.Name = "view";
+            this.view.Size = new System.Drawing.Size(1417, 984);
+            this.view.TabIndex = 0;
             // 
             // MainForm
             // 
