@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Block Breaker Game</title>
+    <style>* { padding: 0; margin: 0; } canvas { background: #eee; display: block; margin: 0 auto; }</style>
+</head>
+<body>
+
+<canvas id="myCanvas" width="480" height="320"></canvas>
+
+<script>
+    class Size {
+        constructor(width, height) {
+            this.width  = width ;
+            this.height = height;
+        }
+
+        clone() {
+            return new Size(this.width, this.height);
+        }
+    }
+
+    class Point {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        clone() {
+            return new Point(this.x, this.y);
+        }
+
+        plusEqual(size) {
+            this.x += size.width ;
+            this.y += size.height;
+        }
+    }
+
+    class Rectangle {
+        constructor(leftTop, size) {
+            this.leftTop = leftTop;
+            this.size    = size   ;
+        }
+    }
+
+    class Circle {
+        constructor(center, radius) {
+            this.center = center;
+            this.radius = radius;
+        }
+    }
+
+    class Canvas {
+        constructor(canvasId) {
+            this.canvasElement = document.getElementById(canvasId);
+            this.context       = this.canvasElement.getContext("2d");
+        }
+
+        get size() {
+            return new Size(this.canvasElement.width ,
+                            this.canvasElement.height);
+        }
+
+        get offsetLeft() {
+            return this.canvasElement.offsetLeft;
+        }
+
+        clear() {
+            this.context.clearRect(0, 0, this.size.width, this.size.height);
+        }
+        
+        drawCircle(circle, fillStyle) {
+            this.context.beginPath();
+            this.context.arc(circle.center.x, circle.center.y, circle.radius, 0, Math.PI * 2);
+            this.context.fillStyle = fillStyle;
+            this.context.fill();
+            this.context.closePath();
+        }
+
+        drawRectangle(rectangle, fillStyle) {
+            this.context.beginPath();
+            this.context.rect(rectangle.leftTop.x, rectangle.leftTop.y, rectangle.size.width, rectangle.size.height);
+            this.context.fillStyle = fillStyle;
+            this.context.fill();
+            this.context.closePath();
+        }
+
+        drawText(text, point, font, fillStyle) {
+            this.context.font = font;
+            this.context.fillStyle = fillStyle;
+            this.context.fillText(text, point.x, point.y);
+        }
+    }
+
+    class Ball {
+        static radius = 10;
+
+        constructor(position, velocity) {
+            this.position0 = position;
+            this.velocity0 = velocity;
+            this.position  = position.clone();
+            this.velocity  = velocity.clone();
+        }
+
+        reset() {
+            this.position  = this.position0.clone();
+            this.velocity  = this.velocity0.clone();
+        }
+
+        xTurn() {
+            this.velocity.width = -this.velocity.width;            
+        }
+
+        yTurn() {
+            this.velocity.height = -this.velocity.height;            
+        }
+
+        move() {
+            this.position.plusEqual(this.velocity);
+        }
+
+        moveTo(position) {
+            this.position = position;
+        }
+
+        draw(canvas) {
+            canvas.drawCircle(new Circle(this.position, Ball.radius), "#0095DD");
+        }
+    }
+
+    class Paddle {
+        static size = new Size(75, 10);
+
+        constructor(maxWidth) {
+            this.x0 = this.x = (maxWidth - Paddle.size.width) / 2;
+        }
+
+        draw(canvas) {
+            canvas.drawRectangle(new Rectangle(new Point(this.x, canvas.size.height - Paddle.size.height), Paddle.size), "#0095DD");
+        }
+
+        moveTo(x) {
+            this.x = x;
+        }
+
+        moveRight() {
+            this.x += 7;
+        }
+        
+        moveLeft() {
+            this.x -= 7;
+        }
+
+        reset() {
+            this.x = this.x0;
+        }
+    }
+
+    class Brick {
+        static size = new Size(75, 20);
+
+        constructor(position) {
+            this.position = position;
+            this.status = 1;
+        }
+
+        moveTo(position) {
+            this.position = position;
+        }
+
+        draw(canvas) {
+            canvas.drawRectangle(new Rectangle(this.position, Brick.size), "#0095DD");
+        }
+    }
+
+    class Bricks {
+        static rowCount    = 5;
+        static columnCount = 3;
+
+        static offset = new Size(30, 30);
+        static padding = 10;
+    
+        constructor() {
+            this.bricks = [];
+
+            for (var column = 0; column < Bricks.columnCount; column++) {
+                this.bricks[column] = [];
+                for (var row = 0; row < Bricks.rowCount; row++)
+                    this.bricks[column][row] = new Brick();
+            }
+        }
+
+        draw(canvas) {
+            for (var column = 0; column < Bricks.columnCount; column++) {
+                for (var row = 0; row < Bricks.rowCount; row++) {
+                    if (this.bricks[column][row].status == 1) {
+                        const position = new Point(
+                            (row    * (Brick.size.width  + Bricks.padding)) + Bricks.offset.width ,
+                            (column * (Brick.size.height + Bricks.padding)) + Bricks.offset.height
+                        );
+                        this.bricks[column][row].moveTo(position);
+                        this.bricks[column][row].draw(canvas);
+                    }
+                }
+            }
+        }
+
+        collisionDetection(ball, score) {
+            for (var column = 0; column < Bricks.columnCount; column++) {
+                for (var row = 0; row < Bricks.rowCount; row++) {
+                    var brick = this.bricks[column][row];
+                    if (brick.status == 1) {
+                        if (ball.position.x > brick.position.x && ball.position.x < brick.position.x + Brick.size.width && ball.position.y > brick.position.y && ball.position.y < brick.position.y + Brick.size.height) {
+                            ball.yTurn();
+                            brick.status = 0;
+                            score++;
+                            if (score == Bricks.rowCount * Bricks.columnCount) {
+                                alert("YOU WIN, CONGRATS!");
+                                document.location.reload();
+                            }
+                        }
+                    }
+                }
+            }
+            return score;
+        }
+    }
+
+    class BlockBreakerGame {
+        constructor() {
+            this.canvas = new Canvas("myCanvas");
+            this.ball   = new Ball(new Point(this.canvas.size.width / 2, this.canvas.size.height - 30), new Size(2, -2));
+            this.paddle = new Paddle(this.canvas.size.width);
+            this.bricks = new Bricks();
+            this.score = 0;
+            this.lives = 3;
+
+            this.rightPressed = false;
+            this.leftPressed  = false;
+
+            document.addEventListener("keydown"  , e => this.keyDownHandler  (e), false);
+            document.addEventListener("keyup"    , e => this.keyUpHandler    (e), false);
+            document.addEventListener("mousemove", e => this.mouseMoveHandler(e), false);
+
+            this.draw(this.canvas);
+        }
+
+        drawScore(canvas, score) {
+            canvas.drawText("Score: " + score, new Point(8, 20), "16px Arial", "#0095DD");
+        }
+
+        drawLives(canvas, lives) {
+            canvas.drawText("Lives: " + lives, new Point(canvas.size.width - 65, 20), "16px Arial", "#0095DD");
+        }
+
+        keyDownHandler(e) {
+            if(e.code  == "ArrowRight")
+                this.rightPressed = true;
+            else if(e.code == 'ArrowLeft')
+                this.leftPressed = true;
+        }
+
+        keyUpHandler(e) {
+            if(e.code == 'ArrowRight')
+                this.rightPressed = false;
+            else if(e.code == 'ArrowLeft')
+                this.leftPressed = false;
+        }
+
+        mouseMoveHandler(e) {
+            var relativeX = e.clientX - this.canvas.offsetLeft;
+            if (relativeX > 0 && relativeX < this.canvas.size.width)
+                this.paddle.moveTo(relativeX - Paddle.size.width / 2);
+        }
+
+        draw(canvas) {
+            this.canvas.clear();
+
+            this.bricks.draw(this.canvas);
+            this.ball.draw(this.canvas);
+            this.paddle.draw(this.canvas);
+
+            this.drawScore(canvas, this.score);
+            this.drawLives(canvas, this.lives);
+            this.score = this.bricks.collisionDetection(this.ball, this.score);
+
+            this.moveBall();
+            this.movePaddle();
+
+            this.ball.move();
+            requestAnimationFrame(() => this.draw(this.canvas));
+        }
+
+        moveBall() {
+            if (this.ball.position.x + this.ball.velocity.width > this.canvas.size.width - Ball.radius || this.ball.position.x + this.ball.velocity.width < Ball.radius) {
+                this.ball.xTurn();
+            } if (this.ball.position.y + this.ball.velocity.height < Ball.radius) {
+                this.ball.yTurn();
+            } else if (this.ball.position.y + this.ball.velocity.height > this.canvas.size.height - Ball.radius) {
+                if (this.ball.position.x > this.paddle.x && this.ball.position.x < this.paddle.x + Paddle.size.width) {
+                    this.ball.yTurn();
+                } else {
+                    this.lives--;
+                    if (!this.lives) {
+                        alert("GAME OVER");
+                        document.location.reload();
+                    } else {
+                        this.ball.reset();
+                        this.paddle.reset();
+                    }
+                }
+            }
+        }
+
+        movePaddle() {
+            if (this.rightPressed && this.paddle.x < this.canvas.size.width - Paddle.size.width)
+                this.paddle.moveRight();
+            else if (this.leftPressed && this.paddle.x > 0)
+                this.paddle.moveLeft();
+        }
+    }
+
+    var game = new BlockBreakerGame();
+</script>
+
+</body>
+</html>
