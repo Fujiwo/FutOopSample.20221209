@@ -2,6 +2,24 @@
 
 ## OOP.Samples.JavaScript
 
+
+### BlockBreaker.OOP.1.html
+
+#### Class Diagram
+
+```mermaid
+classDiagram
+    class Canvas {
+        -canvasElement: HTMLElement
+        -context: CanvasRenderingContext2D
+        +Canvas(canvasId: string)
+        +width: number
+        +height: number
+        +offsetLeft: number
+        +clear(): void
+    }
+```
+
 ### BlockBreaker.OOP.5.html
 
 #### Class Diagram
