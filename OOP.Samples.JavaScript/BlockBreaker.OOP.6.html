@@ -184,16 +184,16 @@
         constructor() {
             this.bricks = [];
 
-            for (var column = 0; column < Bricks.columnCount; column++) {
+            for (let column = 0; column < Bricks.columnCount; column++) {
                 this.bricks[column] = [];
-                for (var row = 0; row < Bricks.rowCount; row++)
+                for (let row = 0; row < Bricks.rowCount; row++)
                     this.bricks[column][row] = new Brick();
             }
         }
 
         draw(canvas) {
-            for (var column = 0; column < Bricks.columnCount; column++) {
-                for (var row = 0; row < Bricks.rowCount; row++) {
+            for (let column = 0; column < Bricks.columnCount; column++) {
+                for (let row = 0; row < Bricks.rowCount; row++) {
                     if (this.bricks[column][row].status == 1) {
                         const position = new Point(
                             (row    * (Brick.size.width  + Bricks.padding)) + Bricks.offset.width ,
@@ -207,9 +207,9 @@
         }
 
         collisionDetection(ball, score) {
-            for (var column = 0; column < Bricks.columnCount; column++) {
-                for (var row = 0; row < Bricks.rowCount; row++) {
-                    var brick = this.bricks[column][row];
+            for (let column = 0; column < Bricks.columnCount; column++) {
+                for (let row = 0; row < Bricks.rowCount; row++) {
+                    const brick = this.bricks[column][row];
                     if (brick.status == 1) {
                         if (ball.position.x > brick.position.x && ball.position.x < brick.position.x + Brick.size.width && ball.position.y > brick.position.y && ball.position.y < brick.position.y + Brick.size.height) {
                             ball.yTurn();
@@ -269,7 +269,7 @@
         }
 
         mouseMoveHandler(e) {
-            var relativeX = e.clientX - this.canvas.offsetLeft;
+            const relativeX = e.clientX - this.canvas.offsetLeft;
             if (relativeX > 0 && relativeX < this.canvas.size.width)
                 this.paddle.moveTo(relativeX - Paddle.size.width / 2);
         }
@@ -321,7 +321,7 @@
         }
     }
 
-    var game = new BlockBreakerGame();
+    const game = new BlockBreakerGame();
 </script>
 
 </body>
