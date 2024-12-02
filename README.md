@@ -119,3 +119,129 @@ classDiagram
     BlockBreakerGame --> Bricks
     Bricks --> Brick
 ```
+
+### BlockBreaker.OOP.6.html
+
+#### Class Diagram
+
+```mermaid
+classDiagram
+    class Size {
+        +width: number
+        +height: number
+        +Size(width: number, height: number)
+        +clone(): Size
+    }
+
+    class Point {
+        +x: number
+        +y: number
+        +Point(x: number, y: number)
+        +clone(): Point
+        +plusEqual(size: Size): void
+    }
+
+    class Rectangle {
+        +leftTop: Point
+        +size: Size
+        +Rectangle(leftTop: Point, size: Size)
+    }
+
+    class Circle {
+        +center: Point
+        +radius: number
+        +Circle(center: Point, radius: number)
+    }
+
+    class Canvas {
+        -canvasElement: HTMLElement
+        -context: CanvasRenderingContext2D
+        +Canvas(canvasId: string)
+        +size: Size
+        +offsetLeft: number
+        +clear(): void
+        +drawCircle(circle: Circle, fillStyle: string): void
+        +drawRectangle(rectangle: Rectangle, fillStyle: string): void
+        +drawText(text: string, point: Point, font: string, fillStyle: string): void
+    }
+
+    class Ball {
+        +position0: Point
+        +velocity0: Size
+        +position: Point
+        +velocity: Size
+        +Ball(position: Point, velocity: Size)
+        +reset(): void
+        +xTurn(): void
+        +yTurn(): void
+        +move(): void
+        +moveTo(position: Point): void
+        +draw(canvas: Canvas): void
+    }
+
+    class Paddle {
+        +x0: number
+        +x: number
+        +Paddle(maxWidth: number)
+        +draw(canvas: Canvas): void
+        +moveTo(x: number): void
+        +moveRight(): void
+        +moveLeft(): void
+        +reset(): void
+    }
+
+    class Brick {
+        +position: Point
+        +status: number
+        +Brick(position: Point)
+        +moveTo(position: Point): void
+        +draw(canvas: Canvas): void
+    }
+
+    class Bricks {
+        +bricks: Brick[][]
+        +Bricks()
+        +draw(canvas: Canvas): void
+        +collisionDetection(ball: Ball, score: number): number
+    }
+
+    class BlockBreakerGame {
+        +canvas: Canvas
+        +ball: Ball
+        +paddle: Paddle
+        +bricks: Bricks
+        +score: number
+        +lives: number
+        +rightPressed: boolean
+        +leftPressed: boolean
+        +BlockBreakerGame()
+        +drawScore(canvas: Canvas, score: number): void
+        +drawLives(canvas: Canvas, lives: number): void
+        +keyDownHandler(e: KeyboardEvent): void
+        +keyUpHandler(e: KeyboardEvent): void
+        +mouseMoveHandler(e: MouseEvent): void
+        +draw(canvas: Canvas): void
+        +moveBall(): void
+        +movePaddle(): void
+    }
+
+    Canvas --> Size
+    Canvas --> Point
+    Canvas --> Circle
+    Canvas --> Rectangle
+    Ball --> Point
+    Ball --> Size
+    Paddle --> Point
+    Paddle --> Size
+    Brick --> Point
+    Brick --> Size
+    Bricks --> Brick
+    Bricks --> Point
+    Bricks --> Size
+    BlockBreakerGame --> Canvas
+    BlockBreakerGame --> Ball
+    BlockBreakerGame --> Paddle
+    BlockBreakerGame --> Bricks
+    BlockBreakerGame --> Point
+    BlockBreakerGame --> Size
+```
