@@ -98,10 +98,10 @@
     class Paddle {
         static height = 10;
         static width = 75;
+        static moveSize = 7;
 
         constructor(maxWidth) {
-            // this.height = 10;
-            // this.width = 75;
+            this.maxWidth = maxWidth;
             this.x0 = this.x = (maxWidth - Paddle.width) / 2;
         }
 
@@ -111,18 +111,28 @@
 
         moveTo(x) {
             this.x = x;
+            this.adjust();
         }
 
         moveRight() {
-            this.x += 7;
+            this.x += Paddle.moveSize;
+            this.adjust();
         }
         
         moveLeft() {
-            this.x -= 7;
+            this.x -= Paddle.moveSize;
+            this.adjust();
         }
 
         reset() {
             this.x = this.x0;
+        }
+
+        adjust() {
+            if (this.x < 0)
+                this.x = 0;
+            else if (this.x + Paddle.width > this.maxWidth)
+                this.x = this.maxWidth - Paddle.width;
         }
     }
 
@@ -157,19 +167,19 @@
         constructor() {
             this.bricks = [];
 
-            for (var column = 0; column < Bricks.columnCount; column++) {
+            for (let column = 0; column < Bricks.columnCount; column++) {
                 this.bricks[column] = [];
-                for (var row = 0; row < Bricks.rowCount; row++)
+                for (let row = 0; row < Bricks.rowCount; row++)
                     this.bricks[column][row] = new Brick();
             }
         }
 
         draw(canvas) {
-            for (var column = 0; column < Bricks.columnCount; column++) {
-                for (var row = 0; row < Bricks.rowCount; row++) {
+            for (let column = 0; column < Bricks.columnCount; column++) {
+                for (let row = 0; row < Bricks.rowCount; row++) {
                     if (this.bricks[column][row].status == 1) {
-                        var brickX = (row * (Brick.width + Bricks.padding)) + Bricks.offsetLeft;
-                        var brickY = (column * (Brick.height + Bricks.padding)) + Bricks.offsetLeft;
+                        const brickX = (row * (Brick.width + Bricks.padding)) + Bricks.offsetLeft;
+                        const brickY = (column * (Brick.height + Bricks.padding)) + Bricks.offsetLeft;
                         this.bricks[column][row].moveTo(brickX, brickY);
                         this.bricks[column][row].draw(canvas);
                     }
@@ -178,9 +188,9 @@
         }
 
         collisionDetection(ball, score) {
-            for (var column = 0; column < Bricks.columnCount; column++) {
-                for (var row = 0; row < Bricks.rowCount; row++) {
-                    var brick = this.bricks[column][row];
+            for (let column = 0; column < Bricks.columnCount; column++) {
+                for (let row = 0; row < Bricks.rowCount; row++) {
+                    const brick = this.bricks[column][row];
                     if (brick.status == 1) {
                         if (ball.x > brick.x && ball.x < brick.x + Brick.width && ball.y > brick.y && ball.y < brick.y + Brick.height) {
                             ball.yTurn();
@@ -240,7 +250,7 @@
         }
 
         mouseMoveHandler(e) {
-            var relativeX = e.clientX - this.canvas.offsetLeft;
+            const relativeX = e.clientX - this.canvas.offsetLeft;
             if (relativeX > 0 && relativeX < this.canvas.width)
                 this.paddle.moveTo(relativeX - Paddle.width / 2);
         }
@@ -292,7 +302,7 @@
         }
     }
 
-    var game = new BlockBreakerGame();
+    const game = new BlockBreakerGame();
 </script>
 
 </body>

@@ -31,7 +31,7 @@
             return new Point(this.x, this.y);
         }
 
-        plusEqual(size) {
+        additionAssign(size) {
             this.x += size.width ;
             this.y += size.height;
         }
@@ -117,7 +117,7 @@
         }
 
         move() {
-            this.position.plusEqual(this.velocity);
+            this.position.additionAssign(this.velocity);
         }
 
         moveTo(position) {
@@ -131,8 +131,10 @@
 
     class Paddle {
         static size = new Size(75, 10);
+        static moveSize = 7;
 
         constructor(maxWidth) {
+            this.maxWidth = maxWidth;
             this.x0 = this.x = (maxWidth - Paddle.size.width) / 2;
         }
 
@@ -142,18 +144,28 @@
 
         moveTo(x) {
             this.x = x;
+            this.adjust();
         }
 
         moveRight() {
-            this.x += 7;
+            this.x += Paddle.moveSize;
+            this.adjust();
         }
         
         moveLeft() {
-            this.x -= 7;
+            this.x -= Paddle.moveSize;
+            this.adjust();
         }
 
         reset() {
             this.x = this.x0;
+        }
+
+        adjust() {
+            if (this.x < 0)
+                this.x = 0;
+            else if (this.x + Paddle.size.width > this.maxWidth)
+                this.x = this.maxWidth - Paddle.size.width;
         }
     }
 
