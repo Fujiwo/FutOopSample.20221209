@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=no">
+    <title></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <style>
+    canvas {
+        border: 1px solid black;
+    }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Figure
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">Free Line</a></li>
+                            <li><a class="dropdown-item" href="#">Line</a></li>
+                            <li><a class="dropdown-item" href="#">Rectangle</a></li>
+                            <li><a class="dropdown-item" href="#">Circle</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <canvas id="canvas"  width="800" height="600"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script>
+    class MyMath {
+        static square(value) {
+            return value * value
+        }
+
+        static getRandomInteger(max) {
+            return MyMath.getRandomIntegerWithMinMax(0, max)
+        }
+
+        static getRandomIntegerWithMinMax(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min)
+        }
+    }
+
+    class Utility {
+        static getRandomColor() {
+            return `rgb(${MyMath.getRandomInteger(255)} ${MyMath.getRandomInteger(255)} ${MyMath.getRandomInteger(255)})`
+        }
+    }
+
+    class Vector2 {
+        constructor(x, y) {
+            this.x = x
+            this.y = y
+        }
+
+        add(another) {
+            return new Vector2(this.x + another.x, this.y + another.y)
+        }
+        
+        sub(another) {
+            return new Vector2(this.x - another.x, this.y - another.y)
+        }
+
+        divide(divisor) {
+            return new Vector2(this.x / divisor, this.y / divisor)
+        }
+
+        distance(another) {
+            return this.sub(another).absoluteValue()
+        }
+
+        absoluteValue() {
+            return Math.sqrt(MyMath.square(this.x) + MyMath.square(this.y))
+        }
+    }
+
+    class Figure {
+        constructor() {
+            this.color = Utility.getRandomColor()
+        }
+    }
+
+    class Line extends Figure {
+        constructor(start, end) {
+            super()
+            this.start = start
+            this.end   = end
+        }
+    }
+
+    class Rectangle extends Figure {
+        constructor(leftTop, size) {
+            super()
+            this.leftTop = leftTop
+            this.size    = size
+        }
+    }
+
+    class Circle extends Figure {
+        constructor(center, radius) {
+            super()
+            this.center = center
+            this.radius = radius
+        }
+    }
+
+    class Polyline extends Figure {
+        get count() {
+            return this.points.length
+        }
+
+        constructor() {
+            super()
+            this.points = []
+        }
+
+        add(point) {
+            this.points.push(point)
+        }
+
+        get(index) {
+            return this.points[index]
+        }
+    }
+
+    class MouseEventAdapter {
+        constructor(htmlElement) {
+            this.htmlElement = htmlElement
+            this.setEventListeners()
+
+            this.isDragging = false
+            this.startingPosition = null
+        }
+
+        setEventListeners() {
+            this.htmlElement.addEventListener(
+                'mousemove',
+                event => this.onMouseMove(this.toRelativePosition(new Vector2(event.pageX, event.pageY)))
+            )
+            this.htmlElement.addEventListener(
+                'mousedown',
+                event => this.onMouseDown(this.toRelativePosition(new Vector2(event.pageX, event.pageY)))
+            )
+            this.htmlElement.addEventListener(
+                'mouseup',
+                event => this.onMouseUp(this.toRelativePosition(new Vector2(event.pageX, event.pageY)))
+            )
+
+            this.onDragStart =
+            this.onDragging  =
+            this.onDragEnd   =
+            this.onClick     = null
+        }
+
+        toRelativePosition(absolutePosition) {
+            const elementArea = this.htmlElement.getBoundingClientRect()
+            const elementPosition = new Vector2(elementArea.left + window.pageXOffset,
+                                                elementArea.top  + window.pageYOffset)
+            return absolutePosition.sub(elementPosition)
+        }
+
+        onMouseDown(position) {
+            this.startingPosition = position
+        }
+
+        onMouseUp(position) {
+            if (this.isDragging) {
+                if (this.onDragEnd !== null)
+                    this.onDragEnd()
+
+                this.isDragging = false
+            } else {
+                if (this.onClick !== null)
+                    this.onClick(position)
+            }
+            this.startingPosition = null
+        }
+
+        onMouseMove(position) {
+            if (this.startingPosition === null && !this.isDragging)
+                return
+
+            if (!this.isDragging) {
+                this.isDragging = true
+                if (this.onDragStart !== null)
+                    this.onDragStart(this.startingPosition)
+            }
+            if (this.onDragging !== null)
+                this.onDragging(position)
+        }
+    }
+
+    class CadData {
+        constructor() {
+            this.figures = []
+        }
+
+        add(figure) {
+            this.figures.push(figure)
+        }
+
+        forEach(doSomething) {
+            this.figures.forEach(figure => doSomething(figure))
+        }
+    }
+
+    class Command {
+        get rubberBand() {
+            return []
+        }
+
+        constructor(cadData) {
+            this.cadData = cadData
+        }
+
+        onDraw(view) {
+        }
+
+        onDragStart(position) {
+            console.log(`Command.onDragStart: ${position.x}, ${position.y}`)
+        }
+
+        onDragging(position) {
+            console.log(`Command.onDragging: ${position.x}, ${position.y}`)
+        }
+
+        onDragEnd() {
+            console.log('Command.onDragEnd')
+        }
+
+        onClick(position) {
+            console.log(`Command.onClick: ${position.x}, ${position.y}`)
+        }
+    }
+
+    class FreeLineCommand extends Command {
+        get rubberBand() {
+            return [this.polyline]
+        }
+
+        constructor(cadData) {
+            super(cadData)
+            this.polyline = null
+        }
+
+        onDragStart(position) {
+            this.polyline = new Polyline()
+            this.polyline.add(position)
+        }
+
+        onDragging(position) {
+            this.polyline.add(position)
+        }
+
+        onDragEnd() {
+            if (this.polyline !== null && this.polyline.count > 1)
+                this.cadData.add(this.polyline)
+            this.polyline = null
+        }
+    }
+
+    class CommandManager {
+        get rubberBand() {
+            return this.command === null ? [] : this.command.rubberBand
+        }
+
+        constructor() {
+            this.command = null
+        }
+
+        set(command) {
+            this.command = command
+        }
+
+        onDraw(view) {
+            if (this.command !== null)
+                this.command.onDraw(view)
+        }
+
+        onDragStart(position) {
+            if (this.command !== null)
+                this.command.onDragStart(position)
+        }
+
+        onDragging(position) {
+            if (this.command !== null)
+                this.command.onDragging(position)
+        }
+
+        onDragEnd() {
+            if (this.command !== null)
+                this.command.onDragEnd()
+        }
+
+        onClick(position) {
+            if (this.command !== null)
+                this.command.onClick(position)
+        }
+    }
+
+    class Controller {
+        get rubberBand() {
+            return this.commandManager.rubberBand
+        }
+
+        constructor(htmlElement, cadData) {
+            this.commandManager = new CommandManager()
+            this.commandManager.set(new FreeLineCommand(cadData))
+
+            this.MouseEventAdapter = new MouseEventAdapter(htmlElement)
+
+            this.MouseEventAdapter.onDragStart = position => this.onDragStart(position)
+            this.MouseEventAdapter.onDragging  = position => this.onDragging(position)
+            this.MouseEventAdapter.onDragEnd   = () => this.onDragEnd()
+            this.MouseEventAdapter.onClick     = position => this.onClick(position)
+        }
+
+        onDragStart(position) {
+            console.log(`onDragStart: ${position.x}, ${position.y}`)
+            this.commandManager.onDragStart(position)
+        }
+
+        onDragging(position) {
+            console.log(`onDragging: ${position.x}, ${position.y}`)
+            this.commandManager.onDragging(position)
+        }
+
+        onDragEnd() {
+            console.log('onDragEnd')
+            this.commandManager.onDragEnd()
+        }
+
+        onClick(position) {
+            console.log(`onClick: ${position.x}, ${position.y}`)
+            this.commandManager.onClick(position)
+        }
+    }
+
+    class Canvas
+    {
+        constructor(htmlElement, onDraw) {
+            this.htmlElement  = htmlElement
+            this.context = htmlElement.getContext("2d")
+            this.onDraw = onDraw
+            this.draw()
+        }
+
+        draw() {
+            this.clear()
+            this.onDraw()
+            window.requestAnimationFrame(() => this.draw())
+        }
+
+        clear() {
+            this.context.clearRect(0, 0, this.htmlElement.width, this.htmlElement.height)
+        }
+    }
+
+    class CadView
+    {
+        constructor(htmlElement, cadData, controller) {
+            this.cadData    = cadData
+            this.controller = controller
+            this.canvas     = new Canvas(htmlElement, () => this.onDraw())
+        }
+
+        onDraw() {
+            this.cadData.forEach(figure => this.drawFigure(figure))
+            this.controller.rubberBand.forEach(figure => this.drawFigure(figure))
+        }
+
+        drawFigure(figure) {
+            if (figure instanceof Line)
+                this.drawLine(figure)
+            else if (figure instanceof Rectangle)
+                this.drawRectangle(figure)
+            else if (figure instanceof Circle)
+                this.drawCircle(figure)
+            else if (figure instanceof Polyline)
+                this.drawPolyline(figure)
+        }
+
+        drawLine(line) {
+            this.context.strokeStyle = line.color
+            this.context.beginPath()
+            this.context.moveTo(line.start.x, line.start.y)
+            this.context.lineTo(line.end  .x, line.end  .y)
+            this.context.stroke()
+        }       
+
+        drawRectangle(rectangle) {
+            this.context.strokeStyle = rectangle.color
+            this.context.strokeRect(rectangle.leftTop.x, rectangle.leftTop.y, rectangle.size.x, rectangle.size.y)
+        }       
+
+        drawCircle(circle) {
+            this.context.strokeStyle = circle.color
+            this.context.beginPath()
+            this.context.arc(circle.center.x, circle.center.y, circle.radius, 0, 2 * Math.PI)
+            this.context.stroke()
+        }
+
+        drawPolyline(polyline) {
+            if (polyline.count < 2)
+                return
+
+            this.context.strokeStyle = polyline.color
+            this.context.beginPath()
+            this.context.moveTo(polyline.get(0).x, polyline.get(0).y)
+            for (let index = 1; index < polyline.count; index++)
+                this.context.lineTo(polyline.get(index).x, polyline.get(index).y)
+            this.context.stroke()
+        }       
+    }
+
+    class Program
+    {
+        constructor() {
+            const canvasElement = document.querySelector('#canvas')
+
+            this.cadData = new CadData()
+            this.controller = new Controller(canvasElement, this.cadData)
+            this.view = new CadView(canvasElement, this.cadData, this.controller)
+        }
+    }
+    
+    window.onload = () => new Program()
+    </script>
+</body>
+</html>

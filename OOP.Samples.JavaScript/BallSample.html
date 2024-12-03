@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=no">
+    <title></title>
+    <style>
+    /* ここに CSS を書く */
+    canvas {
+        border: 1px solid black;
+    }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"  width="800" height="600"></canvas>
+    <script>
+    class MyMath {
+        static getRandomInteger(max) {
+            return MyMath.getRandomIntegerWithMinMax(0, max)
+        }
+        static getRandomIntegerWithMinMax(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min)
+        }
+    }
+    class Vector2 {
+        constructor(x, y) {
+            this.x = x
+            this.y = y
+        }
+        add(another) {
+            return new Vector2(this.x + another.x, this.y + another.y)
+        }
+        
+        sub(another) {
+            return new Vector2(this.x - another.x, this.y - another.y)
+        }
+        divide(divisor) {
+            return new Vector2(this.x / divisor, this.y / divisor)
+        }
+    }
+    class Ball {
+        static acceleration = new Vector2(0, 1)
+        constructor(position, velocity, size, color) {
+            this.size = size
+            this.position = position
+            this.velocity = velocity
+            this.color = color
+        }
+        draw(context) {
+            const radius = this.size / 2
+            const center = this.position.add(new Vector2(radius, radius))
+            Ball.drawCircle(context, center, radius, this.color)
+        }
+        static drawCircle(context, center, radius, color) {
+            context.beginPath()
+            context.arc(center.x, center.y, radius, 0.0, 2.0 * Math.PI)
+            context.fillStyle = color
+            context.fill()
+            context.fillStyle = Ball.getGradation(context, center, radius)
+            context.fill()
+        }
+        static getGradation(context, center, radius) {
+            const offset          = radius * 0.4
+            const gradationX      = center.x - offset
+            const gradationY      = center.y - offset
+            const gradationRadius = radius + offset
+            const gradation       = context.createRadialGradient(gradationX, gradationY, 0, gradationX, gradationY, gradationRadius)
+            gradation.addColorStop(0, 'rgba(255, 255, 255, 0.5)')
+            gradation.addColorStop(1, 'rgba(  0,   0,   0, 0.7)')
+            return gradation;
+        }
+        move(size) {
+            if (this.position.x < 0 || this.position.x > size.x - this.size)
+                this.velocity.x = -this.velocity.x
+            if (this.position.y < 0 || this.position.y > size.y - this.size)
+                this.velocity.y = -this.velocity.y
+            this.position = this.position.add(this.velocity)
+            this.velocity = this.velocity.add(Ball.acceleration)
+        }
+    }
+    class BallSet {
+        constructor() {
+            this.balls = []
+        }
+        add(ball) {
+            this.balls.push(ball)
+        }
+        draw(context) {
+            this.balls.forEach(ball => ball.draw(context))
+        }
+        move(size) {
+            this.balls.forEach(ball => ball.move(size))
+        }
+    }
+    class Program
+    {
+        constructor() {
+            this.canvas  = document.querySelector('#canvas')
+            this.context = canvas.getContext("2d")
+            this.ballSet = new BallSet()
+            this.ballSet.add(this.createBall())
+            this.canvas.addEventListener(
+                'click',
+                event => this.onClickCanvas(this.toRelativePosition(new Vector2(event.pageX, event.pageY)))
+            )
+        }
+        draw() {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+            this.ballSet.draw(this.context)
+            this.ballSet.move(new Vector2(this.canvas.width, this.canvas.height))
+            window.requestAnimationFrame(() => this.draw())
+        }
+        onClickCanvas(position) {
+            this.ballSet.add(Program.createBallWithPosition(position))
+        }
+        createBall() {
+            return Program.createBallWithPosition(new Vector2(MyMath.getRandomInteger(this.canvas.width ),
+                                                              MyMath.getRandomInteger(this.canvas.height)))
+        }
+        static createBallWithPosition(position) {
+            const size = MyMath.getRandomIntegerWithMinMax(1, 30)
+            const maxVelocity = 10
+            const velocity = new Vector2(MyMath.getRandomIntegerWithMinMax(-maxVelocity, maxVelocity), MyMath.getRandomIntegerWithMinMax(-maxVelocity, maxVelocity))
+            return new Ball(position, velocity, size, Program.getRandomColor())
+        }
+        static getRandomColor() {
+            return `rgb(${MyMath.getRandomInteger(255)} ${MyMath.getRandomInteger(255)} ${MyMath.getRandomInteger(255)})`
+        }
+        toRelativePosition(absolutePosition) {
+            const canvasRect = this.canvas.getBoundingClientRect()
+            const canvasPosition = new Vector2(canvasRect.left + window.pageXOffset,
+                                               canvasRect.top  + window.pageYOffset )
+            return absolutePosition.sub(canvasPosition)
+        }
+    }
+    
+    window.onload = () => new Program().draw()
+    </script>
+</body>
+</html>
