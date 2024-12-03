@@ -142,7 +142,7 @@
 
     const paddleHeight = 10;
     const paddleWidth = 75;
-    let paddleX = (canvas.width-paddleWidth)/2;
+    let paddleX = (canvas.width-paddleWidth) / 2;
     const paddleMoveSize = 7;
     let rightPressed = false;
     let leftPressed = false;
@@ -175,9 +175,9 @@
     }
 
     function keyUpHandler(e) {
-        if(e.code == 'ArrowRight')
+        if (e.code == 'ArrowRight')
             rightPressed = false;
-        else if(e.code == 'ArrowLeft')
+        else if (e.code == 'ArrowLeft')
             leftPressed = false;
     }
 
@@ -241,7 +241,7 @@
         if (rightPressed && paddleX < canvas.width - paddleWidth) {
             paddleX += paddleMoveSize;
             adjustPaddle();
-        } else if(leftPressed && paddleX > 0) {
+        } else if (leftPressed && paddleX > 0) {
             paddleX -= paddleMoveSize;
             adjustPaddle();
         }
