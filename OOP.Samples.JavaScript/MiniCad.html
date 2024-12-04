@@ -21,10 +21,10 @@
                             Figure
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Free Line</a></li>
-                            <li><a class="dropdown-item" href="#">Line</a></li>
-                            <li><a class="dropdown-item" href="#">Rectangle</a></li>
-                            <li><a class="dropdown-item" href="#">Circle</a></li>
+                            <li><a id="freeLineMenuItem" class="dropdown-item" href="#">Free Line</a></li>
+                            <li><a id="lineMenuItem" class="dropdown-item" href="#">Line</a></li>
+                            <li><a id="rectangleMenuItem" class="dropdown-item" href="#">Rectangle</a></li>
+                            <li><a id="circleMenuItem" class="dropdown-item" href="#">Circle</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#">Something else here</a></li>
                         </ul>
@@ -380,56 +380,95 @@
 
         drawFigure(figure) {
             if (figure instanceof Line)
-                this.drawLine(figure)
+                CadView.drawLine(this.canvas.context, figure)
             else if (figure instanceof Rectangle)
-                this.drawRectangle(figure)
+                CadView.drawRectangle(this.canvas.context, figure)
             else if (figure instanceof Circle)
-                this.drawCircle(figure)
+                CadView.drawCircle(this.canvas.context, figure)
             else if (figure instanceof Polyline)
-                this.drawPolyline(figure)
+                CadView.drawPolyline(this.canvas.context, figure)
         }
 
-        drawLine(line) {
-            this.context.strokeStyle = line.color
-            this.context.beginPath()
-            this.context.moveTo(line.start.x, line.start.y)
-            this.context.lineTo(line.end  .x, line.end  .y)
-            this.context.stroke()
+        static drawLine(context, line) {
+            context.strokeStyle = line.color
+            context.beginPath()
+            context.moveTo(line.start.x, line.start.y)
+            context.lineTo(line.end  .x, line.end  .y)
+            context.stroke()
         }       
 
-        drawRectangle(rectangle) {
-            this.context.strokeStyle = rectangle.color
-            this.context.strokeRect(rectangle.leftTop.x, rectangle.leftTop.y, rectangle.size.x, rectangle.size.y)
+        static drawRectangle(context, rectangle) {
+            context.strokeStyle = rectangle.color
+            context.strokeRect(rectangle.leftTop.x, rectangle.leftTop.y, rectangle.size.x, rectangle.size.y)
         }       
 
-        drawCircle(circle) {
-            this.context.strokeStyle = circle.color
-            this.context.beginPath()
-            this.context.arc(circle.center.x, circle.center.y, circle.radius, 0, 2 * Math.PI)
-            this.context.stroke()
+        static drawCircle(context, circle) {
+            context.strokeStyle = circle.color
+            context.beginPath()
+            context.arc(circle.center.x, circle.center.y, circle.radius, 0, 2 * Math.PI)
+            context.stroke()
         }
 
-        drawPolyline(polyline) {
+        static drawPolyline(context, polyline) {
             if (polyline.count < 2)
                 return
 
-            this.context.strokeStyle = polyline.color
-            this.context.beginPath()
-            this.context.moveTo(polyline.get(0).x, polyline.get(0).y)
+            context.strokeStyle = polyline.color
+            context.beginPath()
+            context.moveTo(polyline.get(0).x, polyline.get(0).y)
             for (let index = 1; index < polyline.count; index++)
-                this.context.lineTo(polyline.get(index).x, polyline.get(index).y)
-            this.context.stroke()
+                context.lineTo(polyline.get(index).x, polyline.get(index).y)
+            context.stroke()
         }       
     }
 
-    class Program
-    {
+    class MainMenu {
+        constructor() {
+            this.onFreeLine  = null
+            this.onLine      = null
+            this.onRectangle = null
+            this.onCircle    = null
+
+            document.querySelector('#freeLineMenuItem').addEventListener(
+                'click', () => {
+                    if (this.onFreeLine !== null)
+                        this.onFreeLine()
+                 }
+            )
+            this.lineMenuItem = document.querySelector('#lineMenuItem').addEventListener(
+                'click', () => {
+                    if (this.onLine !== null)
+                        this.onLine()
+                 }
+            )
+            this.rectangleMenuItem = document.querySelector('#rectangleMenuItem').addEventListener(
+                'click', () => {
+                    if (this.onRectangle !== null)
+                        this.onRectangle()
+                 }
+            )
+            this.circleMenuItem = document.querySelector('#circleMenuItem').addEventListener(
+                'click', () => {
+                    if (this.onCircle !== null)
+                        this.onCircle()
+                 }
+            )
+        }
+
+        onFreeLine() {
+            console.log('onFreeLine')
+        }
+    }
+
+    class Program {
         constructor() {
             const canvasElement = document.querySelector('#canvas')
 
             this.cadData = new CadData()
             this.controller = new Controller(canvasElement, this.cadData)
             this.view = new CadView(canvasElement, this.cadData, this.controller)
+
+            this.mainMenu = new MainMenu()
         }
     }
     
