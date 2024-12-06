@@ -5,7 +5,7 @@ namespace MiniCad.Models
 {
     partial class Model : Component, IEnumerable<Figure>
     {
-        public Action? Update { get; set; }
+        public event Action? Update;
 
         LinkedList<Figure> figures = new();
         

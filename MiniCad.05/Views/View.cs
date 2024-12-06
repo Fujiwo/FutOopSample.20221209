@@ -1,4 +1,5 @@
-﻿namespace MiniCad.Views
+﻿using System.ComponentModel;
+namespace MiniCad.Views
 {
     using Models;
     using ViewModels;
@@ -7,6 +8,7 @@
 
     partial class View : UserControl
     {
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ICommand? CommandManager { get; set; }
 
         public View() => InitializeComponent();
