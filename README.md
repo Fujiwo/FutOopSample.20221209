@@ -117,7 +117,7 @@ classDiagram
     BlockBreakerGame --> Ball
     BlockBreakerGame --> Paddle
     BlockBreakerGame --> Bricks
-    Bricks --> Brick
+    Bricks "1" --> "*" Brick
 ```
 
 ### BlockBreaker.OOP.6.html
@@ -126,6 +126,7 @@ classDiagram
 
 ```mermaid
 classDiagram
+<!--
     class Size {
         +width: number
         +height: number
@@ -152,6 +153,7 @@ classDiagram
         +radius: number
         +Circle(center: Point, radius: number)
     }
+ -->
 
     class Canvas {
         -canvasElement: HTMLElement
@@ -225,6 +227,7 @@ classDiagram
         +movePaddle(): void
     }
 
+<!--
     Canvas --> Size
     Canvas --> Point
     Canvas --> Circle
@@ -235,15 +238,20 @@ classDiagram
     Paddle --> Size
     Brick --> Point
     Brick --> Size
-    Bricks --> Brick
+-->
+    Bricks "1" --> "*" Brick
+<!--
     Bricks --> Point
     Bricks --> Size
+-->
     BlockBreakerGame --> Canvas
     BlockBreakerGame --> Ball
     BlockBreakerGame --> Paddle
     BlockBreakerGame --> Bricks
+<!--
     BlockBreakerGame --> Point
     BlockBreakerGame --> Size
+-->
 ```
 
 ### MiniCad.html
@@ -331,18 +339,19 @@ classDiagram
 
     Canvas --> Shape
     FigureCommand <|-- Command
-    CommandManager --> Command
-    Controller --> Canvas
+    CommandManager o--> Command
     Controller --> CadData
     Controller --> CommandManager
-    CadView --> Canvas
+    CadView o--> Canvas
     CadView --> CadData
-    Program --> MainMenu
-    Program --> Controller
-    Program --> CadView
-    Program --> Canvas
-    Program --> CadData
-    Program --> CommandManager
+    CadData "1" o--> "*" Figure
+    Figure --> Canvas
+    Figure o--> Shape
+    Program o--> MainMenu
+    Program o--> Controller
+    Program o--> CadView
+    Program o--> CadData
+    Program o--> CommandManager
 ```
 
 ```mermaid
@@ -379,14 +388,6 @@ classDiagram
         +draw(context: CanvasRenderingContext2D): void
     }
 
-    class Canvas {
-        -canvasElement: HTMLElement
-        -context: CanvasRenderingContext2D
-        +Canvas(canvasId: string)
-        +clear(): void
-        +drawShape(shape: Shape): void
-    }
-
     class Figure {
         <<abstract>>
         +draw(canvas: Canvas): void
@@ -414,19 +415,6 @@ classDiagram
         +polyline: Polyline
         +PolylineFigure(polyline: Polyline)
         +draw(canvas: Canvas): void
-    }
-
-    class MouseEventAdapter {
-        +onMouseDown(event: MouseEvent): void
-        +onMouseMove(event: MouseEvent): void
-        +onMouseUp(event: MouseEvent): void
-    }
-
-    class CadData {
-        +figures: Figure[]
-        +CadData()
-        +addFigure(figure: Figure): void
-        +removeFigure(figure: Figure): void
     }
 
     class Command {
@@ -471,63 +459,17 @@ classDiagram
         +undo(): void
     }
 
-    class CommandManager {
-        +commands: Command[]
-        +CommandManager()
-        +executeCommand(command: Command): void
-        +undo(): void
-    }
-
-    class Controller {
-        +canvas: Canvas
-        +cadData: CadData
-        +commandManager: CommandManager
-        +Controller(canvas: Canvas, cadData: CadData, commandManager: CommandManager)
-        +onMouseDown(event: MouseEvent): void
-        +onMouseMove(event: MouseEvent): void
-        +onMouseUp(event: MouseEvent): void
-    }
-
-    class CadView {
-        +canvas: Canvas
-        +CadView(canvas: Canvas)
-        +draw(cadData: CadData): void
-    }
-
-    class MainMenu {
-        +MainMenu()
-        +initialize(): void
-    }
-
-    class Program {
-        +main(): void
-    }
-
     Shape <|-- Line
     Shape <|-- Rectangle
     Shape <|-- Circle
     Shape <|-- Polyline
-    Canvas --> Shape
     Figure <|-- LineFigure
     Figure <|-- RectangleFigure
     Figure <|-- CircleFigure
     Figure <|-- PolylineFigure
-    CadData --> Figure
     FigureCommand <|-- FreeLineCommand
     FigureCommand <|-- LineCommand
     FigureCommand <|-- RectangleCommand
     FigureCommand <|-- CircleCommand
     Command <|-- FigureCommand
-    CommandManager --> Command
-    Controller --> Canvas
-    Controller --> CadData
-    Controller --> CommandManager
-    CadView --> Canvas
-    CadView --> CadData
-    Program --> MainMenu
-    Program --> Controller
-    Program --> CadView
-    Program --> Canvas
-    Program --> CadData
-    Program --> CommandManager
 ```
