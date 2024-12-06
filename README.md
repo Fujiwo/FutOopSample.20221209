@@ -2,6 +2,51 @@
 
 ## OOP.Samples.JavaScript
 
+### BallSample.html
+
+```mermaid
+classDiagram
+    class Vector2 {
+        +x: number
+        +y: number
+        +Vector2(x: number, y: number)
+    }
+
+    class Ball {
+        +position: Vector2
+        +velocity: Vector2
+        +radius: number
+        +color: string
+        +Ball(position: Vector2, velocity: Vector2, radius: number, color: string)
+        +draw(context: CanvasRenderingContext2D): void
+        +move(size: Vector2): void
+    }
+
+    class BallSet {
+        +balls: Ball[]
+        +BallSet()
+        +add(ball: Ball): void
+        +draw(context: CanvasRenderingContext2D): void
+        +move(size: Vector2): void
+    }
+
+    class Program {
+        -canvas: HTMLCanvasElement
+        -context: CanvasRenderingContext2D
+        -ballSet: BallSet
+        +Program()
+        +draw(): void
+        +onClickCanvas(position: Vector2): void
+        +createBall(): Ball
+        +static createBallWithPosition(position: Vector2): Ball
+        +toRelativePosition(position: Vector2): Vector2
+    }
+
+    BallSet --> Ball
+    Program --> BallSet
+    Program --> Vector2
+    Ball --> Vector2
+```
 
 ### BlockBreaker.OOP.1.html
 
