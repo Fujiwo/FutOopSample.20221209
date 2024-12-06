@@ -36,6 +36,8 @@
     <canvas id="canvas"  width="800" height="600"></canvas>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <script>
+    // Common
+
     class MyMath {
         static square(value) {
             return value * value
@@ -55,6 +57,8 @@
             return `rgb(${MyMath.getRandomInteger(255)} ${MyMath.getRandomInteger(255)} ${MyMath.getRandomInteger(255)})`
         }
     }
+
+    // Geometry
 
     class Vector2 {
         constructor(x, y) {
@@ -83,13 +87,10 @@
         }
     }
 
-    class Figure {
-        constructor() {
-            this.color = Utility.getRandomColor()
-        }
+    class Shape {
     }
 
-    class Line extends Figure {
+    class Line extends Shape {
         constructor(start, end) {
             super()
             this.start = start
@@ -97,15 +98,24 @@
         }
     }
 
-    class Rectangle extends Figure {
+    class Rectangle extends Shape {
         constructor(leftTop, size) {
             super()
             this.leftTop = leftTop
             this.size    = size
+            this.normalize()
+        }
+
+        normalize() {
+            let rightBottom = this.leftTop.add(this.size)
+            const leftTop   = new Vector2(Math.min(this.leftTop.x, rightBottom.x), Math.min(this.leftTop.y, rightBottom.y))
+            rightBottom = new Vector2(Math.max(this.leftTop.x, rightBottom.x), Math.max(this.leftTop.y, rightBottom.y))
+            this.leftTop = leftTop
+            this.size    = rightBottom.sub(leftTop)
         }
     }
 
-    class Circle extends Figure {
+    class Circle extends Shape {
         constructor(center, radius) {
             super()
             this.center = center
@@ -113,7 +123,7 @@
         }
     }
 
-    class Polyline extends Figure {
+    class Polyline extends Shape {
         get count() {
             return this.points.length
         }
@@ -129,6 +139,78 @@
 
         get(index) {
             return this.points[index]
+        }
+    }
+
+    class Canvas
+    {
+        get strokeStyle() {
+            return this.context.strokeStyle            
+        }
+        set strokeStyle(color) {
+            this.context.strokeStyle = color            
+        }
+
+        constructor(htmlElement, onDraw) {
+            this.htmlElement  = htmlElement
+            this.context = htmlElement.getContext("2d")
+            this.onDraw = onDraw
+            this.draw()
+        }
+
+        draw() {
+            this.clear()
+            this.onDraw()
+            window.requestAnimationFrame(() => this.draw())
+        }
+
+        clear() {
+            this.context.clearRect(0, 0, this.htmlElement.width, this.htmlElement.height)
+        }
+
+        drawLine(line) {
+            this.context.beginPath()
+            this.context.moveTo(line.start.x, line.start.y)
+            this.context.lineTo(line.end  .x, line.end  .y)
+            this.context.stroke()
+        }       
+    
+        drawRectangle(rectangle) {
+            this.context.strokeRect(rectangle.leftTop.x, rectangle.leftTop.y, rectangle.size.x, rectangle.size.y)
+        }       
+
+        drawCircle(circle) {
+            this.context.beginPath()
+            this.context.arc(circle.center.x, circle.center.y, circle.radius, 0, 2 * Math.PI)
+            this.context.stroke()
+        }
+
+        drawPolyline(polyline) {
+            if (polyline.count < 2)
+                return
+
+            this.context.beginPath()
+            this.context.moveTo(polyline.get(0).x, polyline.get(0).y)
+            for (let index = 1; index < polyline.count; index++)
+                this.context.lineTo(polyline.get(index).x, polyline.get(index).y)
+            this.context.stroke()
+        }       
+    }
+
+    // Cad
+
+    class Figure {
+        constructor(shape) {
+            this.shape = shape
+            this.color = Utility.getRandomColor()
+        }
+
+        draw(canvas) {
+            canvas.strokeStyle = this.color
+            this.onDraw(canvas)
+        }
+
+        onDraw(canvas) {
         }
     }
 
@@ -226,45 +308,36 @@
         }
 
         onDragStart(position) {
-            console.log(`Command.onDragStart: ${position.x}, ${position.y}`)
+            // console.log(`Command.onDragStart: ${position.x}, ${position.y}`)
         }
 
         onDragging(position) {
-            console.log(`Command.onDragging: ${position.x}, ${position.y}`)
+            // console.log(`Command.onDragging: ${position.x}, ${position.y}`)
         }
 
         onDragEnd() {
-            console.log('Command.onDragEnd')
+            // console.log('Command.onDragEnd')
         }
 
         onClick(position) {
-            console.log(`Command.onClick: ${position.x}, ${position.y}`)
+            // console.log(`Command.onClick: ${position.x}, ${position.y}`)
         }
     }
 
-    class FreeLineCommand extends Command {
+    class FigureCommand extends Command {
         get rubberBand() {
-            return [this.polyline]
+            return this.figure === null ? [] : [this.figure]
         }
 
         constructor(cadData) {
             super(cadData)
-            this.polyline = null
-        }
-
-        onDragStart(position) {
-            this.polyline = new Polyline()
-            this.polyline.add(position)
-        }
-
-        onDragging(position) {
-            this.polyline.add(position)
+            this.figure = null
         }
 
         onDragEnd() {
-            if (this.polyline !== null && this.polyline.count > 1)
-                this.cadData.add(this.polyline)
-            this.polyline = null
+            if (this.figure !== null)
+                this.cadData.add(this.figure)
+            this.figure = null
         }
     }
 
@@ -325,43 +398,23 @@
         }
 
         onDragStart(position) {
-            console.log(`onDragStart: ${position.x}, ${position.y}`)
+            // console.log(`onDragStart: ${position.x}, ${position.y}`)
             this.commandManager.onDragStart(position)
         }
 
         onDragging(position) {
-            console.log(`onDragging: ${position.x}, ${position.y}`)
+            // console.log(`onDragging: ${position.x}, ${position.y}`)
             this.commandManager.onDragging(position)
         }
 
         onDragEnd() {
-            console.log('onDragEnd')
+            // console.log('onDragEnd')
             this.commandManager.onDragEnd()
         }
 
         onClick(position) {
-            console.log(`onClick: ${position.x}, ${position.y}`)
+            // console.log(`onClick: ${position.x}, ${position.y}`)
             this.commandManager.onClick(position)
-        }
-    }
-
-    class Canvas
-    {
-        constructor(htmlElement, onDraw) {
-            this.htmlElement  = htmlElement
-            this.context = htmlElement.getContext("2d")
-            this.onDraw = onDraw
-            this.draw()
-        }
-
-        draw() {
-            this.clear()
-            this.onDraw()
-            window.requestAnimationFrame(() => this.draw())
-        }
-
-        clear() {
-            this.context.clearRect(0, 0, this.htmlElement.width, this.htmlElement.height)
         }
     }
 
@@ -374,52 +427,109 @@
         }
 
         onDraw() {
-            this.cadData.forEach(figure => this.drawFigure(figure))
-            this.controller.rubberBand.forEach(figure => this.drawFigure(figure))
+            this.cadData.forEach(figure => figure.draw(this.canvas))
+            this.controller.rubberBand.forEach(figure => figure.draw(this.canvas))
+        }
+    }
+
+    // Application
+
+    class LineFigure extends Figure {
+        constructor(shape) {
+            super(shape)
         }
 
-        drawFigure(figure) {
-            if (figure instanceof Line)
-                CadView.drawLine(this.canvas.context, figure)
-            else if (figure instanceof Rectangle)
-                CadView.drawRectangle(this.canvas.context, figure)
-            else if (figure instanceof Circle)
-                CadView.drawCircle(this.canvas.context, figure)
-            else if (figure instanceof Polyline)
-                CadView.drawPolyline(this.canvas.context, figure)
+        onDraw(canvas) {
+            canvas.drawLine(this.shape)
+        }
+    }
+
+    class RectangleFigure extends Figure {
+        constructor(shape) {
+            super(shape)
         }
 
-        static drawLine(context, line) {
-            context.strokeStyle = line.color
-            context.beginPath()
-            context.moveTo(line.start.x, line.start.y)
-            context.lineTo(line.end  .x, line.end  .y)
-            context.stroke()
-        }       
+        onDraw(canvas) {
+            canvas.drawRectangle(this.shape)
+        }
+    }
 
-        static drawRectangle(context, rectangle) {
-            context.strokeStyle = rectangle.color
-            context.strokeRect(rectangle.leftTop.x, rectangle.leftTop.y, rectangle.size.x, rectangle.size.y)
-        }       
-
-        static drawCircle(context, circle) {
-            context.strokeStyle = circle.color
-            context.beginPath()
-            context.arc(circle.center.x, circle.center.y, circle.radius, 0, 2 * Math.PI)
-            context.stroke()
+    class CircleFigure extends Figure {
+        constructor(shape) {
+            super(shape)
         }
 
-        static drawPolyline(context, polyline) {
-            if (polyline.count < 2)
-                return
+        onDraw(canvas) {
+            canvas.drawCircle(this.shape)
+        }
+    }
 
-            context.strokeStyle = polyline.color
-            context.beginPath()
-            context.moveTo(polyline.get(0).x, polyline.get(0).y)
-            for (let index = 1; index < polyline.count; index++)
-                context.lineTo(polyline.get(index).x, polyline.get(index).y)
-            context.stroke()
-        }       
+    class PolylineFigure extends Figure {
+        constructor() {
+            super(new Polyline())
+        }
+
+        onDraw(canvas) {
+            canvas.drawPolyline(this.shape)
+        }
+    }
+
+    class FreeLineCommand extends FigureCommand {
+        constructor(cadData) {
+            super(cadData)
+        }
+
+        onDragStart(position) {
+            this.figure = new PolylineFigure()
+            this.figure.shape.add(position)
+        }
+
+        onDragging(position) {
+            this.figure.shape.add(position)
+        }
+    }
+
+    class LineCommand extends FigureCommand {
+        constructor(cadData) {
+            super(cadData)
+        }
+
+        onDragStart(position) {
+            this.figure = new LineFigure(new Line(position, position))
+        }
+
+        onDragging(position) {
+            this.figure.shape.end = position
+        }
+    }
+
+    class RectangleCommand extends FigureCommand {
+        constructor(cadData) {
+            super(cadData)
+        }
+
+        onDragStart(position) {
+            this.startingPosition = position
+            this.figure = new RectangleFigure(new Rectangle(position, new Vector2(0, 0)))
+        }
+
+        onDragging(position) {
+            this.figure.shape = new Rectangle(this.startingPosition, position.sub(this.startingPosition))
+        }
+    }
+
+    class CircleCommand extends FigureCommand {
+        constructor(cadData) {
+            super(cadData)
+        }
+
+        onDragStart(position) {
+            this.figure = new CircleFigure(new Circle(position, 0))
+        }
+
+        onDragging(position) {
+            this.figure.shape.radius = this.figure.shape.center.distance(position)
+        }
     }
 
     class MainMenu {
@@ -454,10 +564,6 @@
                  }
             )
         }
-
-        onFreeLine() {
-            console.log('onFreeLine')
-        }
     }
 
     class Program {
@@ -467,8 +573,15 @@
             this.cadData = new CadData()
             this.controller = new Controller(canvasElement, this.cadData)
             this.view = new CadView(canvasElement, this.cadData, this.controller)
+            this.setMainMenu()
+        }
 
-            this.mainMenu = new MainMenu()
+        setMainMenu() {
+            const mainMenu = new MainMenu()
+            mainMenu.onFreeLine  = () => this.controller.commandManager.set(new FreeLineCommand (this.cadData))
+            mainMenu.onLine      = () => this.controller.commandManager.set(new LineCommand     (this.cadData))
+            mainMenu.onRectangle = () => this.controller.commandManager.set(new RectangleCommand(this.cadData))
+            mainMenu.onCircle    = () => this.controller.commandManager.set(new CircleCommand   (this.cadData))
         }
     }
     

@@ -245,3 +245,65 @@ classDiagram
     BlockBreakerGame --> Point
     BlockBreakerGame --> Size
 ```
+
+### MiniCad.html
+
+#### Class Diagram
+
+```mermaid
+classDiagram
+    class Canvas {
+        -canvasElement: HTMLElement
+        -context: CanvasRenderingContext2D
+        +Canvas(canvasId: string)
+        +clear(): void
+        +drawFreeLine(points: Point[], strokeStyle: string): void
+        +drawLine(start: Point, end: Point, strokeStyle: string): void
+        +drawRectangle(rectangle: Rectangle, strokeStyle: string): void
+        +drawCircle(circle: Circle, strokeStyle: string): void
+    }
+
+    class Point {
+        +x: number
+        +y: number
+        +Point(x: number, y: number)
+    }
+
+    class Rectangle {
+        +leftTop: Point
+        +size: Size
+        +Rectangle(leftTop: Point, size: Size)
+    }
+
+    class Circle {
+        +center: Point
+        +radius: number
+        +Circle(center: Point, radius: number)
+    }
+
+    class Size {
+        +width: number
+        +height: number
+        +Size(width: number, height: number)
+    }
+
+    class MiniCad {
+        -canvas: Canvas
+        -currentFigure: string
+        -points: Point[]
+        +MiniCad(canvasId: string)
+        +setFigure(figure: string): void
+        +addPoint(point: Point): void
+        +draw(): void
+    }
+
+    Canvas --> Point
+    Canvas --> Rectangle
+    Canvas --> Circle
+    MiniCad --> Canvas
+    MiniCad --> Point
+    Rectangle --> Point
+    Rectangle --> Size
+    Circle --> Point
+    Circle --> Size
+```
