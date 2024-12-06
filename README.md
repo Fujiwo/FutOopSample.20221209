@@ -252,58 +252,187 @@ classDiagram
 
 ```mermaid
 classDiagram
-    class Canvas {
-        -canvasElement: HTMLElement
-        -context: CanvasRenderingContext2D
-        +Canvas(canvasId: string)
-        +clear(): void
-        +drawFreeLine(points: Point[], strokeStyle: string): void
-        +drawLine(start: Point, end: Point, strokeStyle: string): void
-        +drawRectangle(rectangle: Rectangle, strokeStyle: string): void
-        +drawCircle(circle: Circle, strokeStyle: string): void
+    class Shape {
+        <<abstract>>
+        +draw(context: CanvasRenderingContext2D): void
     }
 
-    class Point {
-        +x: number
-        +y: number
-        +Point(x: number, y: number)
+    class Line {
+        +start: Point
+        +end: Point
+        +Line(start: Point, end: Point)
+        +draw(context: CanvasRenderingContext2D): void
     }
 
     class Rectangle {
         +leftTop: Point
         +size: Size
         +Rectangle(leftTop: Point, size: Size)
+        +draw(context: CanvasRenderingContext2D): void
     }
 
     class Circle {
         +center: Point
         +radius: number
         +Circle(center: Point, radius: number)
+        +draw(context: CanvasRenderingContext2D): void
     }
 
-    class Size {
-        +width: number
-        +height: number
-        +Size(width: number, height: number)
+    class Polyline {
+        +points: Point[]
+        +Polyline(points: Point[])
+        +draw(context: CanvasRenderingContext2D): void
     }
 
-    class MiniCad {
-        -canvas: Canvas
-        -currentFigure: string
-        -points: Point[]
-        +MiniCad(canvasId: string)
-        +setFigure(figure: string): void
-        +addPoint(point: Point): void
-        +draw(): void
+    class Canvas {
+        -canvasElement: HTMLElement
+        -context: CanvasRenderingContext2D
+        +Canvas(canvasId: string)
+        +clear(): void
+        +drawShape(shape: Shape): void
     }
 
-    Canvas --> Point
-    Canvas --> Rectangle
-    Canvas --> Circle
-    MiniCad --> Canvas
-    MiniCad --> Point
-    Rectangle --> Point
-    Rectangle --> Size
-    Circle --> Point
-    Circle --> Size
+    class Figure {
+        <<abstract>>
+        +draw(canvas: Canvas): void
+    }
+
+    class LineFigure {
+        +line: Line
+        +LineFigure(line: Line)
+        +draw(canvas: Canvas): void
+    }
+
+    class RectangleFigure {
+        +rectangle: Rectangle
+        +RectangleFigure(rectangle: Rectangle)
+        +draw(canvas: Canvas): void
+    }
+
+    class CircleFigure {
+        +circle: Circle
+        +CircleFigure(circle: Circle)
+        +draw(canvas: Canvas): void
+    }
+
+    class PolylineFigure {
+        +polyline: Polyline
+        +PolylineFigure(polyline: Polyline)
+        +draw(canvas: Canvas): void
+    }
+
+    class MouseEventAdapter {
+        +onMouseDown(event: MouseEvent): void
+        +onMouseMove(event: MouseEvent): void
+        +onMouseUp(event: MouseEvent): void
+    }
+
+    class CadData {
+        +figures: Figure[]
+        +CadData()
+        +addFigure(figure: Figure): void
+        +removeFigure(figure: Figure): void
+    }
+
+    class Command {
+        <<abstract>>
+        +execute(): void
+        +undo(): void
+    }
+
+    class FigureCommand {
+        <<abstract>>
+        +figure: Figure
+        +FigureCommand(figure: Figure)
+        +execute(): void
+        +undo(): void
+    }
+
+    class FreeLineCommand {
+        +figure: PolylineFigure
+        +FreeLineCommand(figure: PolylineFigure)
+        +execute(): void
+        +undo(): void
+    }
+
+    class LineCommand {
+        +figure: LineFigure
+        +LineCommand(figure: LineFigure)
+        +execute(): void
+        +undo(): void
+    }
+
+    class RectangleCommand {
+        +figure: RectangleFigure
+        +RectangleCommand(figure: RectangleFigure)
+        +execute(): void
+        +undo(): void
+    }
+
+    class CircleCommand {
+        +figure: CircleFigure
+        +CircleCommand(figure: CircleFigure)
+        +execute(): void
+        +undo(): void
+    }
+
+    class CommandManager {
+        +commands: Command[]
+        +CommandManager()
+        +executeCommand(command: Command): void
+        +undo(): void
+    }
+
+    class Controller {
+        +canvas: Canvas
+        +cadData: CadData
+        +commandManager: CommandManager
+        +Controller(canvas: Canvas, cadData: CadData, commandManager: CommandManager)
+        +onMouseDown(event: MouseEvent): void
+        +onMouseMove(event: MouseEvent): void
+        +onMouseUp(event: MouseEvent): void
+    }
+
+    class CadView {
+        +canvas: Canvas
+        +CadView(canvas: Canvas)
+        +draw(cadData: CadData): void
+    }
+
+    class MainMenu {
+        +MainMenu()
+        +initialize(): void
+    }
+
+    class Program {
+        +main(): void
+    }
+
+    Shape <|-- Line
+    Shape <|-- Rectangle
+    Shape <|-- Circle
+    Shape <|-- Polyline
+    Canvas --> Shape
+    Figure <|-- LineFigure
+    Figure <|-- RectangleFigure
+    Figure <|-- CircleFigure
+    Figure <|-- PolylineFigure
+    CadData --> Figure
+    FigureCommand <|-- FreeLineCommand
+    FigureCommand <|-- LineCommand
+    FigureCommand <|-- RectangleCommand
+    FigureCommand <|-- CircleCommand
+    Command <|-- FigureCommand
+    CommandManager --> Command
+    Controller --> Canvas
+    Controller --> CadData
+    Controller --> CommandManager
+    CadView --> Canvas
+    CadView --> CadData
+    Program --> MainMenu
+    Program --> Controller
+    Program --> CadView
+    Program --> Canvas
+    Program --> CadData
+    Program --> CommandManager
 ```
