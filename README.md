@@ -126,7 +126,6 @@ classDiagram
 
 ```mermaid
 classDiagram
-<!--
     class Size {
         +width: number
         +height: number
@@ -153,7 +152,6 @@ classDiagram
         +radius: number
         +Circle(center: Point, radius: number)
     }
- -->
 
     class Canvas {
         -canvasElement: HTMLElement
@@ -227,7 +225,6 @@ classDiagram
         +movePaddle(): void
     }
 
-<!--
     Canvas --> Size
     Canvas --> Point
     Canvas --> Circle
@@ -238,20 +235,15 @@ classDiagram
     Paddle --> Size
     Brick --> Point
     Brick --> Size
--->
     Bricks "1" --> "*" Brick
-<!--
     Bricks --> Point
     Bricks --> Size
--->
     BlockBreakerGame --> Canvas
     BlockBreakerGame --> Ball
     BlockBreakerGame --> Paddle
     BlockBreakerGame --> Bricks
-<!--
     BlockBreakerGame --> Point
     BlockBreakerGame --> Size
--->
 ```
 
 ### MiniCad.html
@@ -472,4 +464,6 @@ classDiagram
     FigureCommand <|-- RectangleCommand
     FigureCommand <|-- CircleCommand
     Command <|-- FigureCommand
+    Figure o--> Shape
+    FigureCommand --> Figure
 ```
