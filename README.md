@@ -257,6 +257,101 @@ classDiagram
         +draw(context: CanvasRenderingContext2D): void
     }
 
+    class Canvas {
+        -canvasElement: HTMLElement
+        -context: CanvasRenderingContext2D
+        +Canvas(canvasId: string)
+        +clear(): void
+        +drawShape(shape: Shape): void
+    }
+
+    class Figure {
+        <<abstract>>
+        +draw(canvas: Canvas): void
+    }
+
+    class MouseEventAdapter {
+        +onMouseDown(event: MouseEvent): void
+        +onMouseMove(event: MouseEvent): void
+        +onMouseUp(event: MouseEvent): void
+    }
+
+    class CadData {
+        +figures: Figure[]
+        +CadData()
+        +addFigure(figure: Figure): void
+        +removeFigure(figure: Figure): void
+    }
+
+    class Command {
+        <<abstract>>
+        +execute(): void
+        +undo(): void
+    }
+
+    class FigureCommand {
+        <<abstract>>
+        +figure: Figure
+        +FigureCommand(figure: Figure)
+        +execute(): void
+        +undo(): void
+    }
+
+    class CommandManager {
+        +commands: Command[]
+        +CommandManager()
+        +executeCommand(command: Command): void
+        +undo(): void
+    }
+
+    class Controller {
+        +canvas: Canvas
+        +cadData: CadData
+        +commandManager: CommandManager
+        +Controller(canvas: Canvas, cadData: CadData, commandManager: CommandManager)
+        +onMouseDown(event: MouseEvent): void
+        +onMouseMove(event: MouseEvent): void
+        +onMouseUp(event: MouseEvent): void
+    }
+
+    class CadView {
+        +canvas: Canvas
+        +CadView(canvas: Canvas)
+        +draw(cadData: CadData): void
+    }
+
+    class MainMenu {
+        +MainMenu()
+        +initialize(): void
+    }
+
+    class Program {
+        +main(): void
+    }
+
+    Canvas --> Shape
+    FigureCommand <|-- Command
+    CommandManager --> Command
+    Controller --> Canvas
+    Controller --> CadData
+    Controller --> CommandManager
+    CadView --> Canvas
+    CadView --> CadData
+    Program --> MainMenu
+    Program --> Controller
+    Program --> CadView
+    Program --> Canvas
+    Program --> CadData
+    Program --> CommandManager
+```
+
+```mermaid
+classDiagram
+    class Shape {
+        <<abstract>>
+        +draw(context: CanvasRenderingContext2D): void
+    }
+
     class Line {
         +start: Point
         +end: Point
