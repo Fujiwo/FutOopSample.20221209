@@ -310,6 +310,12 @@ classDiagram
         +drawShape(shape: Shape): void
     }
 
+    class FigureSetting {
+        +strokeStyle: string
+        +lineWidth: number
+        +clone: FigureSetting
+    }
+
     class Figure {
         <<abstract>>
         +draw(canvas: Canvas): void
@@ -382,8 +388,10 @@ classDiagram
     CadView o--> Canvas
     CadView --> CadData
     CadData "1" o--> "*" Figure
+    CadData o--> FigureSetting
     Figure --> Canvas
     Figure o--> Shape
+    Figure o--> FigureSetting
     Program o--> MainMenu
     Program o--> Controller
     Program o--> CadView
