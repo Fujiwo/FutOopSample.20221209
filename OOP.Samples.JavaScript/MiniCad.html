@@ -9,6 +9,15 @@
     canvas {
         border: 1px solid black;
     }
+    .red {
+        color: red;
+    }
+    .green {
+        color: green;
+    }
+    .blue {
+        color: blue;
+    }
     </style>
 </head>
 <body>
@@ -27,6 +36,26 @@
                             <li><a id="circleMenuItem" class="dropdown-item" href="#">Circle</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Color
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><span id="redMenuItem" class="dropdown-item red" href="#">●</span></li>
+                            <li><span id="greenMenuItem" class="dropdown-item green" href="#">●</span></li>
+                            <li><span id="blueMenuItem" class="dropdown-item blue" href="#">●</span></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Line Width
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a id="lineWidth1MenuItem" class="dropdown-item" href="#">1</a></li>
+                            <li><a id="lineWidth5MenuItem" class="dropdown-item" href="#">5</a></li>
+                            <li><a id="lineWidth10MenuItem" class="dropdown-item" href="#">10</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -147,8 +176,15 @@
         get strokeStyle() {
             return this.context.strokeStyle            
         }
-        set strokeStyle(color) {
-            this.context.strokeStyle = color            
+        set strokeStyle(strokeStyle) {
+            this.context.strokeStyle = strokeStyle
+        }
+
+        get lineWidth() {
+            return this.context.lineWidth            
+        }
+        set lineWidth(lineWidth) {
+            this.context.lineWidth = lineWidth            
         }
 
         constructor(htmlElement, onDraw) {
@@ -199,14 +235,29 @@
 
     // Cad
 
+    class FigureSetting {
+        get clone() {
+            const clone = new FigureSetting()
+            clone.strokeStyle = this.strokeStyle
+            clone.lineWidth   = this.lineWidth
+            return clone
+        }
+
+        constructor() {
+            this.strokeStyle = 'black'
+            this.lineWidth   = 1
+        }
+    }
+
     class Figure {
         constructor(shape) {
             this.shape = shape
-            this.color = Utility.getRandomColor()
+            this.figureSetting = new FigureSetting()
         }
 
         draw(canvas) {
-            canvas.strokeStyle = this.color
+            canvas.strokeStyle = this.figureSetting.strokeStyle
+            canvas.lineWidth   = this.figureSetting.lineWidth
             this.onDraw(canvas)
         }
 
@@ -284,6 +335,7 @@
     class CadData {
         constructor() {
             this.figures = []
+            this.figureSetting = new FigureSetting()
         }
 
         add(figure) {
@@ -308,19 +360,15 @@
         }
 
         onDragStart(position) {
-            // console.log(`Command.onDragStart: ${position.x}, ${position.y}`)
         }
 
         onDragging(position) {
-            // console.log(`Command.onDragging: ${position.x}, ${position.y}`)
         }
 
         onDragEnd() {
-            // console.log('Command.onDragEnd')
         }
 
         onClick(position) {
-            // console.log(`Command.onClick: ${position.x}, ${position.y}`)
         }
     }
 
@@ -332,6 +380,12 @@
         constructor(cadData) {
             super(cadData)
             this.figure = null
+        }
+                
+        initializeFigure(figure) {
+            this.figure = figure
+            if (this.figure !== null)
+                this.figure.figureSetting = this.cadData.figureSetting.clone
         }
 
         onDragEnd() {
@@ -398,22 +452,18 @@
         }
 
         onDragStart(position) {
-            // console.log(`onDragStart: ${position.x}, ${position.y}`)
             this.commandManager.onDragStart(position)
         }
 
         onDragging(position) {
-            // console.log(`onDragging: ${position.x}, ${position.y}`)
             this.commandManager.onDragging(position)
         }
 
         onDragEnd() {
-            // console.log('onDragEnd')
             this.commandManager.onDragEnd()
         }
 
         onClick(position) {
-            // console.log(`onClick: ${position.x}, ${position.y}`)
             this.commandManager.onClick(position)
         }
     }
@@ -480,7 +530,7 @@
         }
 
         onDragStart(position) {
-            this.figure = new PolylineFigure()
+            this.initializeFigure(new PolylineFigure())
             this.figure.shape.add(position)
         }
 
@@ -495,7 +545,7 @@
         }
 
         onDragStart(position) {
-            this.figure = new LineFigure(new Line(position, position))
+            this.initializeFigure(new LineFigure(new Line(position, position)))
         }
 
         onDragging(position) {
@@ -510,7 +560,7 @@
 
         onDragStart(position) {
             this.startingPosition = position
-            this.figure = new RectangleFigure(new Rectangle(position, new Vector2(0, 0)))
+            this.initializeFigure(new RectangleFigure(new Rectangle(position, new Vector2(0, 0))))
         }
 
         onDragging(position) {
@@ -524,7 +574,7 @@
         }
 
         onDragStart(position) {
-            this.figure = new CircleFigure(new Circle(position, 0))
+            this.initializeFigure(new CircleFigure(new Circle(position, 0)))
         }
 
         onDragging(position) {
@@ -538,6 +588,7 @@
             this.onLine      = null
             this.onRectangle = null
             this.onCircle    = null
+            this.onRed       = null
 
             document.querySelector('#freeLineMenuItem').addEventListener(
                 'click', () => {
@@ -563,6 +614,42 @@
                         this.onCircle()
                  }
             )
+            this.circleMenuItem = document.querySelector('#redMenuItem').addEventListener(
+                'click', () => {
+                    if (this.onRed !== null)
+                        this.onRed()
+                 }
+            )
+            this.circleMenuItem = document.querySelector('#greenMenuItem').addEventListener(
+                'click', () => {
+                    if (this.onGreen !== null)
+                        this.onGreen()
+                 }
+            )
+            this.circleMenuItem = document.querySelector('#blueMenuItem').addEventListener(
+                'click', () => {
+                    if (this.onBlue !== null)
+                        this.onBlue()
+                 }
+            )
+            this.circleMenuItem = document.querySelector('#lineWidth1MenuItem').addEventListener(
+                'click', () => {
+                    if (this.lineWidth1 !== null)
+                        this.lineWidth1()
+                 }
+            )
+            this.circleMenuItem = document.querySelector('#lineWidth5MenuItem').addEventListener(
+                'click', () => {
+                    if (this.lineWidth5 !== null)
+                        this.lineWidth5()
+                 }
+            )
+            this.circleMenuItem = document.querySelector('#lineWidth10MenuItem').addEventListener(
+                'click', () => {
+                    if (this.lineWidth10 !== null)
+                        this.lineWidth10()
+                 }
+            )
         }
     }
 
@@ -582,6 +669,13 @@
             mainMenu.onLine      = () => this.controller.commandManager.set(new LineCommand     (this.cadData))
             mainMenu.onRectangle = () => this.controller.commandManager.set(new RectangleCommand(this.cadData))
             mainMenu.onCircle    = () => this.controller.commandManager.set(new CircleCommand   (this.cadData))
+            mainMenu.onRed       = () => this.cadData.figureSetting.strokeStyle = 'red'
+            mainMenu.onGreen     = () => this.cadData.figureSetting.strokeStyle = 'green'
+            mainMenu.onBlue      = () => this.cadData.figureSetting.strokeStyle = 'blue'
+            mainMenu.onRed       = () => this.cadData.figureSetting.strokeStyle = 'red'
+            mainMenu.lineWidth1  = () => this.cadData.figureSetting.lineWidth = 1
+            mainMenu.lineWidth5  = () => this.cadData.figureSetting.lineWidth = 5
+            mainMenu.lineWidth10 = () => this.cadData.figureSetting.lineWidth = 10
         }
     }
     
