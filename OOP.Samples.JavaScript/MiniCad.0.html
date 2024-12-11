@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=no">
+    <title></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <style>
+    canvas {
+        border: 1px solid black;
+    }
+    .red {
+        color: red;
+    }
+    .green {
+        color: green;
+    }
+    .blue {
+        color: blue;
+    }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Figure
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a id="freeLineMenuItem" class="dropdown-item" href="#">Free Line</a></li>
+                            <li><a id="lineMenuItem" class="dropdown-item" href="#">Line</a></li>
+                            <li><a id="rectangleMenuItem" class="dropdown-item" href="#">Rectangle</a></li>
+                            <li><a id="circleMenuItem" class="dropdown-item" href="#">Circle</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Color
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><span id="redMenuItem" class="dropdown-item red" href="#">●</span></li>
+                            <li><span id="greenMenuItem" class="dropdown-item green" href="#">●</span></li>
+                            <li><span id="blueMenuItem" class="dropdown-item blue" href="#">●</span></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Line Width
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a id="lineWidth1MenuItem" class="dropdown-item" href="#">1</a></li>
+                            <li><a id="lineWidth5MenuItem" class="dropdown-item" href="#">5</a></li>
+                            <li><a id="lineWidth10MenuItem" class="dropdown-item" href="#">10</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <canvas id="canvas"  width="800" height="600"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script>
+    // Common
+
+    function square(value) {
+        return value * value;
+    }
+
+    function getRandomInteger(max) {
+        return getRandomIntegerWithMinMax(0, max);
+    }
+
+    function getRandomIntegerWithMinMax(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+
+    function getRandomColor() {
+        return `rgb(${getRandomInteger(255)} ${getRandomInteger(255)} ${getRandomInteger(255)})`;
+    }
+
+    // Geometry
+
+    function Vector2(x, y) {
+        return { x: x, y: y };
+    }
+
+    function addVectors(v1, v2) {
+        return Vector2(v1.x + v2.x, v1.y + v2.y);
+    }
+
+    function subVectors(v1, v2) {
+        return Vector2(v1.x - v2.x, v1.y - v2.y);
+    }
+
+    function divideVector(v, divisor) {
+        return Vector2(v.x / divisor, v.y / divisor);
+    }
+
+    function distanceBetween(v1, v2) {
+        return absoluteValue(subVectors(v1, v2));
+    }
+
+    function absoluteValue(v) {
+        return Math.sqrt(square(v.x) + square(v.y));
+    }
+
+    // Shapes
+
+    function Line(start, end) {
+        return { start: start, end: end };
+    }
+
+    function Rectangle(leftTop, size) {
+        const rect = { leftTop: leftTop, size: size };
+        normalizeRectangle(rect);
+        return rect;
+    }
+
+    function normalizeRectangle(rect) {
+        let rightBottom = addVectors(rect.leftTop, rect.size);
+        const leftTop = Vector2(Math.min(rect.leftTop.x, rightBottom.x), Math.min(rect.leftTop.y, rightBottom.y));
+        rightBottom = Vector2(Math.max(rect.leftTop.x, rightBottom.x), Math.max(rect.leftTop.y, rightBottom.y));
+        rect.leftTop = leftTop;
+        rect.size = subVectors(rightBottom, leftTop);
+    }
+
+    function Circle(center, radius) {
+        return { center: center, radius: radius };
+    }
+
+    function Polyline() {
+        return { points: [] };
+    }
+
+    function addPointToPolyline(polyline, point) {
+        polyline.points.push(point);
+    }
+
+    function getPointFromPolyline(polyline, index) {
+        return polyline.points[index];
+    }
+
+    function getPolylineCount(polyline) {
+        return polyline.points.length;
+    }
+
+    // Canvas
+
+    function createCanvas(htmlElement, onDraw) {
+        const canvas = {
+            htmlElement: htmlElement,
+            context: htmlElement.getContext("2d"),
+            onDraw: onDraw
+        };
+        drawCanvas(canvas);
+        return canvas;
+    }
+
+    function drawCanvas(canvas) {
+        clearCanvas(canvas);
+        canvas.onDraw();
+        window.requestAnimationFrame(() => drawCanvas(canvas));
+    }
+
+    function clearCanvas(canvas) {
+        canvas.context.clearRect(0, 0, canvas.htmlElement.width, canvas.htmlElement.height);
+    }
+
+    function drawLine(canvas, line) {
+        canvas.context.beginPath();
+        canvas.context.moveTo(line.start.x, line.start.y);
+        canvas.context.lineTo(line.end.x, line.end.y);
+        canvas.context.stroke();
+    }
+
+    function drawRectangle(canvas, rectangle) {
+        canvas.context.strokeRect(rectangle.leftTop.x, rectangle.leftTop.y, rectangle.size.x, rectangle.size.y);
+    }
+
+    function drawCircle(canvas, circle) {
+        canvas.context.beginPath();
+        canvas.context.arc(circle.center.x, circle.center.y, circle.radius, 0, 2 * Math.PI);
+        canvas.context.stroke();
+    }
+
+    function drawPolyline(canvas, polyline) {
+        if (getPolylineCount(polyline) < 2) return;
+
+        canvas.context.beginPath();
+        canvas.context.moveTo(getPointFromPolyline(polyline, 0).x, getPointFromPolyline(polyline, 0).y);
+        for (let index = 1; index < getPolylineCount(polyline); index++) {
+            canvas.context.lineTo(getPointFromPolyline(polyline, index).x, getPointFromPolyline(polyline, index).y);
+        }
+        canvas.context.stroke();
+    }
+
+    // Cad
+
+    function createFigureSetting() {
+        return { strokeStyle: 'black', lineWidth: 1 };
+    }
+
+    function cloneFigureSetting(setting) {
+        return { strokeStyle: setting.strokeStyle, lineWidth: setting.lineWidth };
+    }
+
+    function createFigure(shape) {
+        return { shape: shape, figureSetting: createFigureSetting() };
+    }
+
+    function drawFigure(canvas, figure) {
+        canvas.context.strokeStyle = figure.figureSetting.strokeStyle;
+        canvas.context.lineWidth = figure.figureSetting.lineWidth;
+        drawShape(canvas, figure.shape);
+    }
+
+    function drawShape(canvas, shape) {
+        if (shape.start && shape.end) {
+            drawLine(canvas, shape);
+        } else if (shape.leftTop && shape.size) {
+            drawRectangle(canvas, shape);
+        } else if (shape.center && shape.radius) {
+            drawCircle(canvas, shape);
+        } else if (shape.points) {
+            drawPolyline(canvas, shape);
+        }
+    }
+
+    function createMouseEventAdapter(htmlElement) {
+        const adapter = {
+            htmlElement: htmlElement,
+            isDragging: false,
+            startingPosition: null,
+            onDragStart: null,
+            onDragging: null,
+            onDragEnd: null,
+            onClick: null
+        };
+        setMouseEventListeners(adapter);
+        return adapter;
+    }
+
+    function setMouseEventListeners(adapter) {
+        adapter.htmlElement.addEventListener('mousemove', event => onMouseMove(adapter, toRelativePosition(adapter, Vector2(event.pageX, event.pageY))));
+        adapter.htmlElement.addEventListener('mousedown', event => onMouseDown(adapter, toRelativePosition(adapter, Vector2(event.pageX, event.pageY))));
+        adapter.htmlElement.addEventListener('mouseup', event => onMouseUp(adapter, toRelativePosition(adapter, Vector2(event.pageX, event.pageY))));
+    }
+
+    function toRelativePosition(adapter, absolutePosition) {
+        const elementArea = adapter.htmlElement.getBoundingClientRect();
+        const elementPosition = Vector2(elementArea.left + window.pageXOffset, elementArea.top + window.pageYOffset);
+        return subVectors(absolutePosition, elementPosition);
+    }
+
+    function onMouseDown(adapter, position) {
+        adapter.startingPosition = position;
+    }
+
+    function onMouseUp(adapter, position) {
+        if (adapter.isDragging) {
+            if (adapter.onDragEnd !== null) adapter.onDragEnd();
+            adapter.isDragging = false;
+        } else {
+            if (adapter.onClick !== null) adapter.onClick(position);
+        }
+        adapter.startingPosition = null;
+    }
+
+    function onMouseMove(adapter, position) {
+        if (adapter.startingPosition === null && !adapter.isDragging) return;
+
+        if (!adapter.isDragging) {
+            adapter.isDragging = true;
+            if (adapter.onDragStart !== null) adapter.onDragStart(adapter.startingPosition);
+        }
+        if (adapter.onDragging !== null) adapter.onDragging(position);
+    }
+
+    function createCadData() {
+        return { figures: [], figureSetting: createFigureSetting() };
+    }
+
+    function addFigure(cadData, figure) {
+        cadData.figures.push(figure);
+    }
+
+    function forEachFigure(cadData, doSomething) {
+        cadData.figures.forEach(figure => doSomething(figure));
+    }
+
+    function createCommand(cadData) {
+        return {
+            cadData: cadData,
+            rubberBand: [],
+            onDraw: function(view) {},
+            onDragStart: function(position) {},
+            onDragging: function(position) {},
+            onDragEnd: function() {},
+            onClick: function(position) {}
+        };
+    }
+
+    function createFigureCommand(cadData) {
+        const command = createCommand(cadData);
+        command.figure = null;
+        command.rubberBand = function() {
+            return this.figure === null ? [] : [this.figure];
+        };
+        command.initializeFigure = function(figure) {
+            this.figure = figure;
+            if (this.figure !== null) this.figure.figureSetting = cloneFigureSetting(this.cadData.figureSetting);
+        };
+        command.onDragEnd = function() {
+            if (this.figure !== null) addFigure(this.cadData, this.figure);
+            this.figure = null;
+        };
+        return command;
+    }
+
+    function createCommandManager() {
+        return {
+            command: null,
+            rubberBand: function() {
+                return this.command === null ? [] : this.command.rubberBand();
+            },
+            set: function(command) {
+                this.command = command;
+            },
+            onDraw: function(view) {
+                if (this.command !== null) this.command.onDraw(view);
+            },
+            onDragStart: function(position) {
+                if (this.command !== null) this.command.onDragStart(position);
+            },
+            onDragging: function(position) {
+                if (this.command !== null) this.command.onDragging(position);
+            },
+            onDragEnd: function() {
+                if (this.command !== null) this.command.onDragEnd();
+            },
+            onClick: function(position) {
+                if (this.command !== null) this.command.onClick(position);
+            }
+        };
+    }
+
+    function createController(htmlElement, cadData) {
+        const controller = {
+            commandManager: createCommandManager(),
+            mouseEventAdapter: createMouseEventAdapter(htmlElement),
+            rubberBand: function() {
+                return this.commandManager.rubberBand();
+            }
+        };
+        controller.commandManager.set(createFreeLineCommand(cadData));
+        controller.mouseEventAdapter.onDragStart = position => controller.commandManager.onDragStart(position);
+        controller.mouseEventAdapter.onDragging = position => controller.commandManager.onDragging(position);
+        controller.mouseEventAdapter.onDragEnd = () => controller.commandManager.onDragEnd();
+        controller.mouseEventAdapter.onClick = position => controller.commandManager.onClick(position);
+        return controller;
+    }
+
+    function createCadView(htmlElement, cadData, controller) {
+        const view = {
+            cadData: cadData,
+            controller: controller,
+        };
+        view.canvas = createCanvas(htmlElement, () => onDraw(view))
+        return view;
+    }
+
+    function onDraw(view) {
+        forEachFigure(view.cadData, figure => drawFigure(view.canvas, figure));
+        view.controller.rubberBand().forEach(figure => drawFigure(view.canvas, figure));
+    }
+
+    // Application
+
+    function createLineFigure(shape) {
+        const figure = createFigure(shape);
+        figure.onDraw = function(canvas) {
+            drawLine(canvas, this.shape);
+        };
+        return figure;
+    }
+
+    function createRectangleFigure(shape) {
+        const figure = createFigure(shape);
+        figure.onDraw = function(canvas) {
+            drawRectangle(canvas, this.shape);
+        };
+        return figure;
+    }
+
+    function createCircleFigure(shape) {
+        const figure = createFigure(shape);
+        figure.onDraw = function(canvas) {
+            drawCircle(canvas, this.shape);
+        };
+        return figure;
+    }
+
+    function createPolylineFigure() {
+        const figure = createFigure(Polyline());
+        figure.onDraw = function(canvas) {
+            drawPolyline(canvas, this.shape);
+        };
+        return figure;
+    }
+
+    function createFreeLineCommand(cadData) {
+        const command = createFigureCommand(cadData);
+        command.onDragStart = function(position) {
+            this.initializeFigure(createPolylineFigure());
+            addPointToPolyline(this.figure.shape, position);
+        };
+        command.onDragging = function(position) {
+            addPointToPolyline(this.figure.shape, position);
+        };
+        return command;
+    }
+
+    function createLineCommand(cadData) {
+        const command = createFigureCommand(cadData);
+        command.onDragStart = function(position) {
+            this.initializeFigure(createLineFigure(Line(position, position)));
+        };
+        command.onDragging = function(position) {
+            this.figure.shape.end = position;
+        };
+        return command;
+    }
+
+    function createRectangleCommand(cadData) {
+        const command = createFigureCommand(cadData);
+        command.onDragStart = function(position) {
+            this.startingPosition = position;
+            this.initializeFigure(createRectangleFigure(Rectangle(position, Vector2(0, 0))));
+        };
+        command.onDragging = function(position) {
+            this.figure.shape = Rectangle(this.startingPosition, subVectors(position, this.startingPosition));
+        };
+        return command;
+    }
+
+    function createCircleCommand(cadData) {
+        const command = createFigureCommand(cadData);
+        command.onDragStart = function(position) {
+            this.initializeFigure(createCircleFigure(Circle(position, 0)));
+        };
+        command.onDragging = function(position) {
+            this.figure.shape.radius = distanceBetween(this.figure.shape.center, position);
+        };
+        return command;
+    }
+
+    function createMainMenu() {
+        const mainMenu = {
+            onFreeLine: null,
+            onLine: null,
+            onRectangle: null,
+            onCircle: null,
+            onRed: null,
+            onGreen: null,
+            onBlue: null,
+            lineWidth1: null,
+            lineWidth5: null,
+            lineWidth10: null
+        };
+        document.querySelector('#freeLineMenuItem').addEventListener('click', () => {
+            if (mainMenu.onFreeLine !== null) mainMenu.onFreeLine();
+        });
+        document.querySelector('#lineMenuItem').addEventListener('click', () => {
+            if (mainMenu.onLine !== null) mainMenu.onLine();
+        });
+        document.querySelector('#rectangleMenuItem').addEventListener('click', () => {
+            if (mainMenu.onRectangle !== null) mainMenu.onRectangle();
+        });
+        document.querySelector('#circleMenuItem').addEventListener('click', () => {
+            if (mainMenu.onCircle !== null) mainMenu.onCircle();
+        });
+        document.querySelector('#redMenuItem').addEventListener('click', () => {
+            if (mainMenu.onRed !== null) mainMenu.onRed();
+        });
+        document.querySelector('#greenMenuItem').addEventListener('click', () => {
+            if (mainMenu.onGreen !== null) mainMenu.onGreen();
+        });
+        document.querySelector('#blueMenuItem').addEventListener('click', () => {
+            if (mainMenu.onBlue !== null) mainMenu.onBlue();
+        });
+        document.querySelector('#lineWidth1MenuItem').addEventListener('click', () => {
+            if (mainMenu.lineWidth1 !== null) mainMenu.lineWidth1();
+        });
+        document.querySelector('#lineWidth5MenuItem').addEventListener('click', () => {
+            if (mainMenu.lineWidth5 !== null) mainMenu.lineWidth5();
+        });
+        document.querySelector('#lineWidth10MenuItem').addEventListener('click', () => {
+            if (mainMenu.lineWidth10 !== null) mainMenu.lineWidth10();
+        });
+        return mainMenu;
+    }
+
+    function initializeProgram() {
+        const canvasElement = document.querySelector('#canvas');
+        const cadData = createCadData();
+        const controller = createController(canvasElement, cadData);
+        const view = createCadView(canvasElement, cadData, controller);
+        setMainMenu(controller, cadData);
+    }
+    
+    function setMainMenu(controller, cadData) {
+        const mainMenu = createMainMenu();
+        mainMenu.onFreeLine = () => controller.commandManager.set(createFreeLineCommand(cadData));
+        mainMenu.onLine = () => controller.commandManager.set(createLineCommand(cadData));
+        mainMenu.onRectangle = () => controller.commandManager.set(createRectangleCommand(cadData));
+        mainMenu.onCircle = () => controller.commandManager.set(createCircleCommand(cadData));
+        mainMenu.onRed = () => cadData.figureSetting.strokeStyle = 'red';
+        mainMenu.onGreen = () => cadData.figureSetting.strokeStyle = 'green';
+        mainMenu.onBlue = () => cadData.figureSetting.strokeStyle = 'blue';
+        mainMenu.lineWidth1 = () => cadData.figureSetting.lineWidth = 1;
+        mainMenu.lineWidth5 = () => cadData.figureSetting.lineWidth = 5;
+        mainMenu.lineWidth10 = () => cadData.figureSetting.lineWidth = 10;
+    }
+
+    window.onload = initializeProgram
+</script>
+</body>
+</html>
